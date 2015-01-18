@@ -1,0 +1,81 @@
+doctype html
+html
+  head
+    title= title
+    link(rel='stylesheet', href='style.css')
+  body
+    block content
+
+    script(src='bower_components/jquery/dist/jquery.min.js')
+    script.
+      var items = $('.gallery__item');
+      items.first().css('display', 'block')
+
+
+      var images = [
+        {
+          'title': 'fun',
+          'src':   'fun.jpg'
+        },
+        {
+          'title': 'square',
+          'src':   'painting-square.jpg'
+        },
+        {
+          'title': 'wide',
+          'src':   'painting-wide.jpg'
+        },
+        {
+          'title': 'portrait',
+          'src':   'painting-portrait.jpg'
+        }
+      ]
+
+      var baseUrl = '/images/';
+
+      var currentIndex = 0;
+      var currentItem = images[currentIndex];
+      
+      var item = $('.gallery__item');
+      var img  = item.children('.gallery__img');
+      //img.css('width', img.width());
+      
+      var btnNext = $('.gallery__btn--next');
+      
+      btnNext.on('click', function() {
+        var nextItem;
+        currentIndex += 1;
+        
+        if (images[currentIndex] === undefined) {
+          currentIndex = 0;
+          nextItem = images[currentIndex];
+        }
+        else {
+          nextItem = images[currentIndex];
+        }
+
+        $.ajax({
+          url: baseUrl + nextItem.src,
+          
+        })
+        .done(function() {
+          
+
+          img.attr('src', baseUrl + nextItem.src);
+        
+        })
+
+        /*
+        itemImg = currentItem.children('.gallery__img');
+        console.log(itemImg.width());
+        var nextItem = currentItem.next();
+
+        if (!nextItem.hasClass('gallery__item')) {
+          nextItem = items.first();  
+        }
+        currentItem.css('display', 'none');
+  
+        nextItem.css('display', 'block');
+        currentItem = nextItem;
+        */
+      });
