@@ -5,77 +5,63 @@ html
     link(rel='stylesheet', href='style.css')
   body
     block content
+    script(type='text/template', id='paint-list-template').
+      
+      <h1>Paints</h1>
+
+      <% _.each(paints, function(paint){ %>
+        <p><%= paint.get('title') %></p> 
+
+      <% }); %>
 
     script(src='bower_components/jquery/dist/jquery.min.js')
+    script(src='bower_components/underscore/underscore-min.js')
+    script(src='bower_components/backbone/backbone.js')
     script.
-      var items = $('.gallery__item');
-      items.first().css('display', 'block')
-
-
-      var images = [
-        {
-          'title': 'fun',
-          'src':   'fun.jpg'
-        },
-        {
-          'title': 'square',
-          'src':   'painting-square.jpg'
-        },
-        {
-          'title': 'wide',
-          'src':   'painting-wide.jpg'
-        },
-        {
-          'title': 'portrait',
-          'src':   'painting-portrait.jpg'
-        }
-      ]
-
-      var baseUrl = '/images/';
-
-      var currentIndex = 0;
-      var currentItem = images[currentIndex];
       
-      var item = $('.gallery__item');
-      var img  = item.children('.gallery__img');
-      //img.css('width', img.width());
-      
-      var btnNext = $('.gallery__btn--next');
-      
-      btnNext.on('click', function() {
-        var nextItem;
-        currentIndex += 1;
-        
-        if (images[currentIndex] === undefined) {
-          currentIndex = 0;
-          nextItem = images[currentIndex];
-        }
-        else {
-          nextItem = images[currentIndex];
-        }
-
-        $.ajax({
-          url: baseUrl + nextItem.src,
-          
-        })
-        .done(function() {
-          
-
-          img.attr('src', baseUrl + nextItem.src);
-        
-        })
-
-        /*
-        itemImg = currentItem.children('.gallery__img');
-        console.log(itemImg.width());
-        var nextItem = currentItem.next();
-
-        if (!nextItem.hasClass('gallery__item')) {
-          nextItem = items.first();  
-        }
-        currentItem.css('display', 'none');
-  
-        nextItem.css('display', 'block');
-        currentItem = nextItem;
-        */
+      var Paints = Backbone.Collection.extend({
+        url: '/paints'
       });
+
+      var PaintList = Backbone.View.extend({
+        el: 'body',
+        render: function() {
+          var that = this;
+          var paints = new Paints();
+          paints.fetch({
+            success: function(paints) {
+              var template = _.template($('#paint-list-template').html());
+              that.$el.html(template({paints: paints.models}));
+            }
+          })
+        }
+      });
+      
+      var Home = Backbone.View.extend({
+        el: 'body',
+        render: function() {
+          this.$el.html('Hello world');
+        }
+      });
+
+      var Router = Backbone.Router.extend({
+        routes: {
+          '': 'home',
+          'paints': 'paints'
+        }
+      });
+
+      var router = new Router();
+
+      var home = new Home();
+      router.on('route:home', function() {
+        home.render();
+      });
+
+      var paintList = new PaintList();
+      router.on('route:paints', function() {
+        console.log('paints');
+      });
+
+
+      Backbone.history.start();
