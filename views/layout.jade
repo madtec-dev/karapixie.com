@@ -27,6 +27,8 @@ html
     
     script(type='text/template', id='paint-template').
 
+      <div class='btn btn--prev'></div>
+      <div class='btn btn--next'></div>
       <h1><%= paint.get('title') %></h1>
       <img src='<%= "/images/" + paint.get("src")  %>' />
     
@@ -53,15 +55,30 @@ html
     script(src='bower_components/backbone/backbone.js')
     script.
 
+      // ROUTER
+      var Router = Backbone.Router.extend({
+        routes: {
+          '': 'home',
+          'paints': 'paintList',
+          'paints/:query': 'paints'
+        }
+      });
+
+      var router = new Router();
+
+
+      
+      // MODELS 
       var PaintModel = Backbone.Model.extend({
         urlRoot: '/paints' 
       });
 
-      
+      // COLLECTIONS
       var PaintCollection = Backbone.Collection.extend({
         url: '/paints'
       });
 
+      // VIEWS
       var PaintListView = Backbone.View.extend({
         el: 'body',
         template: _.template($('#paint-list-template').html()),
@@ -79,12 +96,32 @@ html
 
       var PaintView = Backbone.View.extend({
         model: PaintModel,
+        
         template: _.template($('#paint-template').html()),
+        
         el: 'body',
+
+        events: {
+          'click .btn--next': 'next',
+          'click .btn--prev': 'prev'
+        },
+
+        next: function() {
+          router.navigate('paints/' + this.paintModel.get('next'), {trigger: true});
+        },
+        
+        prev: function() {
+          router.navigate('paints/' + this.paintModel.get('prev'), {trigger: true});
+        },
+        
+        initialize: function() {
+          this.paintModel = new PaintModel();
+        },
+
         render: function(paintTitle) {
           var that = this;
-          var paintModel = new PaintModel({id: paintTitle});
-          paintModel.fetch({
+          this.paintModel.set('id', paintTitle);
+          this.paintModel.fetch({
             success: function(paint) {              
               that.$el.html(that.template({paint: paint}));
             }
@@ -100,16 +137,7 @@ html
         }
       });
 
-      var Router = Backbone.Router.extend({
-        routes: {
-          '': 'home',
-          'paints': 'paintList',
-          'paints/:query': 'paints'
-        }
-      });
-
-      var router = new Router();
-
+      // ROUTES
       var home = new Home();
       router.on('route:home', function() {
         home.render();
@@ -125,5 +153,5 @@ html
       router.on('route:paintList', function() {
         paintListView.render();
       });
-
+      
       Backbone.history.start();

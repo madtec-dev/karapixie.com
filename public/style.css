@@ -25,17 +25,17 @@ ul {
   height: 100%;
   margin: 0 auto; }
 
-.gallery__btn {
+.btn {
   position: absolute;
   top: 50%;
   height: 48px;
   width: 48px;
   background: blue; }
 
-.gallery__btn--prev {
+.btn--prev {
   left: 0; }
 
-.gallery__btn--next {
+.btn--next {
   right: 0; }
 
 ul li {
