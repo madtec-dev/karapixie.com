@@ -38,4 +38,16 @@ ul {
 .gallery__btn--next {
   right: 0; }
 
+ul li {
+  display: inline-block;
+  vertical-align: top;
+  padding: 48px; }
+
+.paint__img {
+  width: 200px;
+  height: auto; }
+
+.paint__img img {
+  max-width: 100%; }
+
 /*# sourceMappingURL=style.css.map */

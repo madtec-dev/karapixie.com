@@ -9,45 +9,102 @@ html
       
       <h1>Paints</h1>
 
-      <% _.each(paints, function(paint){ %>
-        <p><%= paint.get('title') %></p> 
+      <ul>
+        <% _.each(paints, function(paint){ %>
+          <li>
+            <div class='paint'>
+              <h4 class='paint__title'><%= paint.get('title') %></h4> 
+              <div class='paint__img'>
+                <a href='<%= "/#paints/" + paint.get("title") %>'>
+                <img src='<%= "/images/" + paint.get("src") %>' />
+                </a>
+              </div>
+            </div>
+          </li>
+        
 
       <% }); %>
+    
+    script(type='text/template', id='paint-template').
+
+      <h1><%= paint.get('title') %></h1>
+      <img src='<%= "/images/" + paint.get("src")  %>' />
+    
+    script(type='text/template', id='home-template').
+      
+      <h1>Karapixie</h1>
+      
+      <nav>
+        <ul>
+          <l1>
+            <a href='/#paints'>paints</a>
+          </li>
+          <l1>
+            <a href='/#about'>about</a>
+          </li>
+          <l1>
+            <a href='/#contact'>contact</a>
+          </li>
+        </ul>
+      </nav>
 
     script(src='bower_components/jquery/dist/jquery.min.js')
     script(src='bower_components/underscore/underscore-min.js')
     script(src='bower_components/backbone/backbone.js')
     script.
+
+      var PaintModel = Backbone.Model.extend({
+        urlRoot: '/paints' 
+      });
+
       
-      var Paints = Backbone.Collection.extend({
+      var PaintCollection = Backbone.Collection.extend({
         url: '/paints'
       });
 
-      var PaintList = Backbone.View.extend({
+      var PaintListView = Backbone.View.extend({
         el: 'body',
+        template: _.template($('#paint-list-template').html()),
         render: function() {
           var that = this;
-          var paints = new Paints();
-          paints.fetch({
+          var paintCollection = new PaintCollection();
+          paintCollection.fetch({
             success: function(paints) {
-              var template = _.template($('#paint-list-template').html());
-              that.$el.html(template({paints: paints.models}));
+              that.$el.html(that.template({paints: paints.models}));
             }
           })
         }
       });
       
+
+      var PaintView = Backbone.View.extend({
+        model: PaintModel,
+        template: _.template($('#paint-template').html()),
+        el: 'body',
+        render: function(paintTitle) {
+          var that = this;
+          var paintModel = new PaintModel({id: paintTitle});
+          paintModel.fetch({
+            success: function(paint) {              
+              that.$el.html(that.template({paint: paint}));
+            }
+          })
+        }
+      });
+
       var Home = Backbone.View.extend({
+        template: _.template($('#home-template').html()),
         el: 'body',
         render: function() {
-          this.$el.html('Hello world');
+          this.$el.html(this.template());
         }
       });
 
       var Router = Backbone.Router.extend({
         routes: {
           '': 'home',
-          'paints': 'paints'
+          'paints': 'paintList',
+          'paints/:query': 'paints'
         }
       });
 
@@ -58,10 +115,15 @@ html
         home.render();
       });
 
-      var paintList = new PaintList();
-      router.on('route:paints', function() {
-        console.log('paints');
+      var paintView = new PaintView();
+      router.on('route:paints', function(query) {
+        paintView.render(query); 
       });
 
+
+      var paintListView = new PaintListView();
+      router.on('route:paintList', function() {
+        paintListView.render();
+      });
 
       Backbone.history.start();

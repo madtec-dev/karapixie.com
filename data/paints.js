@@ -1,11 +1,19 @@
 var paints = [
   {
-    title: 'fun on the moon',
+    title: 'fun',
     src:   'fun.jpg'
   },
   {
     title: 'wide',
     src:   'painting-wide.jpg'
+  },
+  {
+    title: 'square',
+    src:   'painting-square.jpg'
+  },
+  {
+    title: 'portrait',
+    src:   'painting-portrait.jpg'
   }
 ]
 
