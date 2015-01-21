@@ -3,7 +3,48 @@ html, body {
   background: #FEFEFE;
 }
 body {
+  position: relative;
   margin: 0;
+}
+
+header {
+  height: 72px;
+  background: black;
+  color: #FEFEFE;
+}
+
+header h1 {
+  float: left;
+}
+
+.paints {
+  position: absolute;
+  top: 72px;
+  right: 0;
+  bottom: 0;
+  left: 0;
+
+  background: black;
+  opacity: 0.8;
+  color: #FEFEFE;
+}
+
+.paint {
+  height: 80%;
+}
+
+.paint__img {
+  display: block;
+  height: 100%;
+  width: auto;
+  margin: 0 auto;
+}
+
+.menu {
+  width: 48px;
+  height: 48px;
+  background: red;
+  float: right;
 }
 
 ul {
@@ -12,24 +53,6 @@ ul {
   padding: 0;
 }
 
-.gallery, .gallery__item {
-  height: 100%;
-}
-
-.gallery {
-  position: relative;
-}
-
-.gallery__item {
-  display: none;
-}
-
-.gallery__img {
-  display: block;
-  width: auto;
-  height: 100%;
-  margin: 0 auto;
-}
 
 .btn {
   position: absolute;
@@ -53,12 +76,13 @@ ul li {
   padding: 48px;
 }
 
-.paint__img {
+.paint__thumb {
   width: 200px;
   height: auto;
 }
 
-.paint__img img {
+.paint__thumb img {
   max-width: 100%;
 }
+
 
