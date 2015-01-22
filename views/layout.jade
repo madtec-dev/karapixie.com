@@ -6,7 +6,15 @@ html
   body
     block content
     script(type='text/template', id='paint-list-template').
-      
+
+      <ul>
+        <% _.each(['all', 'oil', 'acrylic'], function(category) { %>
+          <li><a href= '<%= "/#paints/category/" + category %>' > <%= category %></a></li>
+
+        <% }); %>
+        <li></li>
+      </ul>
+
       <ul>
         <% _.each(paints, function(paint){ %>
           <li>
@@ -59,7 +67,8 @@ html
       var Router = Backbone.Router.extend({
         routes: {
           '': 'home',
-          'paints(/)': 'paintList',
+          'paints(/)':              'paintList',
+          'paints/category/:query(/)': 'byCategory',
           'paints/:query': 'paints'
         }
       });
@@ -80,6 +89,7 @@ html
 
       // VIEWS
       var PaintListView = Backbone.View.extend({
+        model: 'PaintModel',
         el: '.paints',
         template: _.template($('#paint-list-template').html()),
         events: {
@@ -90,12 +100,30 @@ html
           $('.paints').hide();
         },
 
-        render: function() {
+        filterByCategory: function(paints, category) {
+          var filtered = paints.filter(function(item) {
+            return item.get('category') == category;
+          });
+          return new PaintCollection(filtered);
+        },
+
+        render: function(query) {
           var that = this;
           var paintCollection = new PaintCollection();
           paintCollection.fetch({
             success: function(paints) {
+
+              if (query == 'all') {
               that.$el.html(that.template({paints: paints.models}));
+                
+              }
+              else if (query != undefined) {
+                paints = that.filterByCategory(paints, query);
+                console.log(paints);
+              }
+              
+              that.$el.html(that.template({paints: paints.models}));
+              
             }
           })
         }
@@ -110,14 +138,14 @@ html
         el: '.paint',
 
         events: {
-          'click .menu':      'menu',
+          //'click .menu':      'menu',
           'click .btn--next': 'next',
           'click .btn--prev': 'prev'
         },
 
-        menu: function() {
-          this.paintListView.render(); 
-        },
+        //menu: function() {
+        //  this.paintListView.show(); 
+        //},
 
         next: function() {
           router.navigate('paints/' + this.paintModel.get('next'), {trigger: true});
@@ -129,7 +157,9 @@ html
         
         initialize: function() {
           this.paintModel = new PaintModel();
-          this.paintListView = new PaintListView();
+        
+          //this.paintListView = new PaintListView();
+          //this.paintListView.$el.hide();
         },
 
         render: function(paintTitle) {
@@ -151,9 +181,9 @@ html
         },
 
         menu: function() {
-          var paintListView = new PaintListView();
+          //var paintListView = new PaintListView();
           $('.paints').toggle(); 
-          paintListView.render();
+          //paintListView.render();
         },
         render: function() {
           this.$el.html(this.template());
@@ -189,5 +219,10 @@ html
         headerView.render();
         paintListView.render();
       });
-      
+ 
+      router.on('route:byCategory', function(query) {
+        headerView.render();
+        paintListView.render(query);
+      });
+
       Backbone.history.start();

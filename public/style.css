@@ -62,6 +62,11 @@ ul li {
   vertical-align: top;
   padding: 48px; }
 
+ul li a {
+  color: #FEFEFE;
+  text-transform: uppercase;
+  text-decoration: none; }
+
 .paint__thumb {
   width: 200px;
   height: auto; }
