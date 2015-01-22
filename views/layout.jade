@@ -202,15 +202,12 @@ html
       
       var headerView = new HeaderView();
 
-      var home = new Home();
-      router.on('route:home', function() {
-        home.render();
-      });
 
       var paintView = new PaintView();
       router.on('route:paints', function(query) {
         headerView.render();
         paintView.render(query); 
+        paintListView.render();
       });
 
 
@@ -225,4 +222,8 @@ html
         paintListView.render(query);
       });
 
+      var home = new Home();
+      router.on('route:home', function() {
+        home.render();
+      });
       Backbone.history.start();
