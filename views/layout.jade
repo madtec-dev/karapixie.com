@@ -2,229 +2,248 @@ doctype html
 html
   head
     title= title
-    link(rel='stylesheet', href='style.css')
+    //link(rel='stylesheet', href='style.css')
   body
     block content
-    script(type='text/template', id='paint-list-template').
 
-      <ul>
-        <% _.each(['all', 'oil', 'acrylic'], function(category) { %>
-          <li><a href= '<%= "/#paints/category/" + category %>' > <%= category %></a></li>
-
-        <% }); %>
-        <li></li>
-      </ul>
-
-      <ul>
-        <% _.each(paints, function(paint){ %>
-          <li>
-            <div class='paint'>
-              <h4 class='paint__title'><%= paint.get('title') %></h4> 
-              <div class='paint__thumb'>
-                <a href='<%= "/#paints/" + paint.get("title") %>'>
-                <img src='<%= "/images/" + paint.get("src") %>' />
-                </a>
-              </div>
-            </div>
-          </li>
+    script.
+      var categories = [
+        {
+          name: 'all'
+        },
+        {
+          name: 'oil'
+        },
+        {
+          name: 'acrylic'
+        },
+        {
+          name: 'charcoal'
+        }
+      ]
+      
+      var paints = [
+        {
+          title:    'fun',
+          category: 'oil'
+        },
+        {
+          title:    'wide',
+          category: 'acrylic'
+        },
+        {
+          title:    'portrait',
+          category: 'oil'
+        },
+        {
+          title:    'square',
+          category: 'charcoal'
+        },
         
-
-      <% }); %>
-    
-    script(type='text/template', id='paint-template').
+      ];
       
-      <div class='btn btn--prev'></div>
-      <div class='btn btn--next'></div>
-      <img class='paint__img' src='<%= "/images/" + paint.get("src")  %>' />
-    
-    script(type='text/template', id='header-template').
+    script(type='text/template', id='paint-thumb-template').
+      <%= paint.get('title') %>
       
-      <h1>Karapixie</h1>
-      <div class='menu'>menu</div>
-
-    script(type='text/template', id='home-template').
-       
-      <nav>
-        <ul>
-          <l1>
-            <a href='/#paints'>paints</a>
-          </li>
-          <l1>
-            <a href='/#about'>about</a>
-          </li>
-          <l1>
-            <a href='/#contact'>contact</a>
-          </li>
-        </ul>
-      </nav>
-
+    script(type='text/template', id='paint-full-template').
+      <%= paint.get('title') %>
+    
+    script(type='text/template', id='category-template').
+      <%= category.get('name') %>
+    
+    script(type='text/template', id='paint-navigation-template').
+      <div class='navigation'>
+        <p class='next'>next</p>
+        <p class='prev'>prev</p>
+      </div>
+    
     script(src='bower_components/zepto/zepto.min.js')
-    //script(src='bower_components/jquery/dist/jquery.min.js')
     script(src='bower_components/underscore/underscore-min.js')
     script(src='bower_components/backbone/backbone.js')
+    script(src='js/models.js')
+    script(src='js/collections.js')
+    script(src='js/views.js')
+    script(src='js/routes.js')
+  //  
     script.
 
-      // ROUTER
-      var Router = Backbone.Router.extend({
-        routes: {
-          '': 'home',
-          'paints(/)':              'paintList',
-          'paints/category/:query(/)': 'byCategory',
-          'paints/:query': 'paints'
-        }
-      });
 
-      var router = new Router();
+      var app = app || {};
 
+      app.Paint = Backbone.Model.extend({
 
+        defaults: {
+          title:    'untitled',
+          srcDir:   '/images/',
+          category: ''
+        },
+
+        initialize: function() {},
       
-      // MODELS 
-      var PaintModel = Backbone.Model.extend({
-        urlRoot: '/paints' 
       });
 
-      // COLLECTIONS
-      var PaintCollection = Backbone.Collection.extend({
-        url: '/paints'
-      });
+      app.Gallery = Backbone.Collection.extend({
 
-      // VIEWS
-      var PaintListView = Backbone.View.extend({
-        model: 'PaintModel',
-        el: '.paints',
-        template: _.template($('#paint-list-template').html()),
-        events: {
-          'click .paint__thumb': 'closeMenu'
-        },
+        model: app.Paint,
 
-        closeMenu: function() {
-          $('.paints').hide();
-        },
-
-        filterByCategory: function(paints, category) {
-          var filtered = paints.filter(function(item) {
-            return item.get('category') == category;
-          });
-          return new PaintCollection(filtered);
-        },
-
-        render: function(query) {
-          var that = this;
-          var paintCollection = new PaintCollection();
-          paintCollection.fetch({
-            success: function(paints) {
-
-              if (query == 'all') {
-              that.$el.html(that.template({paints: paints.models}));
-                
-              }
-              else if (query != undefined) {
-                paints = that.filterByCategory(paints, query);
-                console.log(paints);
-              }
-              
-              that.$el.html(that.template({paints: paints.models}));
-              
-            }
-          })
-        }
-      });
-      
-
-      var PaintView = Backbone.View.extend({
-        model: PaintModel,
-        
-        template: _.template($('#paint-template').html()),
-        
-        el: '.paint',
-
-        events: {
-          //'click .menu':      'menu',
-          'click .btn--next': 'next',
-          'click .btn--prev': 'prev'
-        },
-
-        //menu: function() {
-        //  this.paintListView.show(); 
-        //},
-
-        next: function() {
-          router.navigate('paints/' + this.paintModel.get('next'), {trigger: true});
-        },
-        
-        prev: function() {
-          router.navigate('paints/' + this.paintModel.get('prev'), {trigger: true});
-        },
-        
         initialize: function() {
-          this.paintModel = new PaintModel();
+          _.bindAll(this, 'nextPaint', 'prevPaint');
+          this._paintIndex = 0;
+        },
+
+        nextPaint: function() {
+
+          var next;
+          if (this._paintIndex >= this.length) {
+            this._paintIndex = 0;  
+          }
+
+          
+          next = this.at(this._paintIndex);
+          this._paintIndex += 1;
+          return next;
+        },
+
+        prevPaint: function() {
         
-          //this.paintListView = new PaintListView();
-          //this.paintListView.$el.hide();
         },
 
-        render: function(paintTitle) {
-          var that = this;
-          this.paintModel.set('id', paintTitle);
-          this.paintModel.fetch({
-            success: function(paint) {              
-              that.$el.html(that.template({paint: paint}));
-            }
-          })
-        }
+        filterByCategory: function(category) {
+          var filtered = this.filter(function(paint) {
+            return paint.get('category') == category;
+          }); 
+
+          return filtered;
+        },
+
+        categories: function() {
+          return _.uniq(this.pluck('category'));
+        },
+
       });
 
-      var HeaderView = Backbone.View.extend({
-        template: _.template($('#header-template').html()),
-        el: 'header',
-        events: {
-          'click .menu': 'menu'
-        },
+      app.PaintView = Backbone.View.extend({
+      
+        tagName: 'div',
 
-        menu: function() {
-          //var paintListView = new PaintListView();
-          $('.paints').toggle(); 
-          //paintListView.render();
-        },
+        className: 'paint',
+
+        template: _.template($('#paint-template').html()),
+
+        initialize: function() {},
+
         render: function() {
-          this.$el.html(this.template());
-        }
+          this.$el.html(this.template({paint: this.model}));
+          return this;
+        },
+
       });
 
-      var Home = Backbone.View.extend({
-        template: _.template($('#home-template').html()),
-        el: 'body',
-        render: function() {
-          this.$el.html(this.template());
-        }
+      app.PaintThumbView = app.PaintView.extend({
+
+        template: _.template($('#paintThumb-template').html()),
+
       });
+
+      app.GalleryListView = Backbone.View.extend({
+ 
+        url: '/gallery',
+
+        el: 'div',
+
+        className: 'paints',
+
+        template: _.template($('#gallery-template').html()),
+
+        initialize: function() {
+          this.listenTo(this.collection, 'reset', this.render, this);
+        },
+
+        render: function() {
+          this.$el.empty();
+
+          this.$el.html(this.template(
+            {categories: this.collection.categories()}
+          ));
+
+          this.collection.each(function(paint) {
+            this.renderPaint(paint);
+          }, this);
+        },
+
+        renderPaint: function(paint) {
+          var paintView = new app.PaintThumbView({model: paint});
+          this.$el.append(paintView.render().el);
+        },
+
+
+      });
+
+      app.GalleryLinkedListView = app.GalleryListView.extend({
+
+        render: function() {
+          this.$el.empty();
+          var paintView = new app.PaintView({model: this.collection.nextPaint()});
+          this.$el.append(paintView.render().el);
+        },
+
+      });
+
+      var gallery = new app.Gallery(paints);
+      var filtered = new app.Gallery(paints); 
+      var galleryListView = new app.GalleryListView({collection: filtered});
+      var galleryLinkedListView = new app.GalleryLinkedListView({collection: filtered});
+
+      $(function() {
+        app.GalleryNavigationView = new (Backbone.View.extend({
+
+          template: _.template($('#galleryNavigation-template').html()),
+
+          events: {
+            'click .btn--next': 'next',
+            'click .btn--prev': 'prev'
+          },
+
+          initialize: function() {
+            _.bindAll(this, 'next', 'prev', 'render');
+          },
+
+          render: function() {
+            $(this.el).html(this.template());
+            return this;
+          },
+
+          next: function() {
+            this.trigger('next');
+          },
+
+          prev: function() {
+            this.trigger('prev');
+          }
+
+        }))({el: '.gallery__nav'}).render();
+          
+          app.GalleryNavigationView.bind(
+            'next', gallery.nextPaint
+          );
+      });
+
 
       // ROUTES
-      
-      var headerView = new HeaderView();
+      var Router = Backbone.Router.extend({
+        routes: {
+          'gallery(/)': 'galleryList',
+          'gallery/:query()': 'galleryLinkedList'
+        }
+      });
+      var router = new Router();
 
-
-      var paintView = new PaintView();
-      router.on('route:paints', function(query) {
-        headerView.render();
-        paintView.render(query); 
-        paintListView.render();
+      router.on('route:galleryList', function() {
+        galleryListView.render();
       });
 
-
-      var paintListView = new PaintListView();
-      router.on('route:paintList', function() {
-        headerView.render();
-        paintListView.render();
-      });
- 
-      router.on('route:byCategory', function(query) {
-        headerView.render();
-        paintListView.render(query);
+      router.on('route:galleryLinkedList', function() {
+        galleryLinkedListView.render();
       });
 
-      var home = new Home();
-      router.on('route:home', function() {
-        home.render();
-      });
       Backbone.history.start();
