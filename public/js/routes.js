@@ -9,9 +9,13 @@
 $(document).on('ready', function() {
 var Router = new (Backbone.Router.extend({
 
+  paintCollection: new Paints(paints),
+
+  paintFilteredCollection: new Paints(paints),
+
   initialize: function() { 
-    //PaintNavigationView.bind('next', this.nextPaint, this);
-    //PaintNavigationView.bind('prev', this.prevPaint, this);
+    PaintControlsView.bind('nextPaint', this.nextPaint, this);
+    PaintControlsView.bind('prevPaint', this.prevPaint, this);
   },
 
   routes: {
@@ -21,17 +25,8 @@ var Router = new (Backbone.Router.extend({
   },
 
   paint: function(categoryName, paintName) {
-    var paintCollection = new Paints(paints);
-
-    var paintFilteredCollection;
-    if (categoryName === 'all') {
-      paintFilteredCollection = paintCollection;
-    }
-    else { 
-      paintFilteredCollection = new Paints(paintCollection.byCategory(categoryName));
-    }
-
-    var paint = paintFilteredCollection.findWhere({title: paintName});
+    this.paintFilteredCollection = this.filterByCategory(categoryName);
+    var paint = this.paintFilteredCollection.findWhere({title: paintName});
   
     var paintFullView = new PaintFullView({model: paint});
     paintFullView.bind('showPaint', this.showPaint, this);
@@ -39,7 +34,7 @@ var Router = new (Backbone.Router.extend({
     //AppView.showView(paintFullView);
 
     paintFullView.render();
-    //PaintNavigationView.render(); 
+    PaintControlsView.render(); 
 
   },
 
@@ -92,37 +87,24 @@ var Router = new (Backbone.Router.extend({
   },
 
   paintList: function(categoryName) {
-
-    var categoryName = categoryName || 'all'; 
-    var paintCollection = new Paints(paints);
-    
-    var paintFilteredCollection;
-    if (categoryName === 'all') {
-      paintFilteredCollection = paintCollection;
-    }
-    else { 
-      paintFilteredCollection = new Paints(paintCollection.byCategory(categoryName));
-    }
-
+    this.paintFilteredCollection = this.filterByCategory(categoryName);
     var categoryCollection = new Categories(categories);
     
     var galleryView = new GalleryView({
-      paintCollection: paintFilteredCollection,
+      paintCollection: this.paintFilteredCollection,
       categoryCollection: categoryCollection
     });
     galleryView.bind('showPaint', this.showPaint, this);
     galleryView.bind('showPaints', this.showPaints, this);
+    PageNavView.render();
     galleryView.render();
-    /*
-    var paintThumbListView = new PaintThumbListView({collection: paintFilteredCollection});
-    paintThumbListView.bind('showPaint', this.showPaint, this);
-    paintThumbListView.render();
-    
-    var categoryCollection = new Categories(categories);
-    var categoryListView = new CategoryListView({collection: categoryCollection});
-    categoryListView.bind('showPaints', this.showPaints, this);
-    categoryListView.render();
-    */
+  },
+
+  filterByCategory: function(categoryName) {
+    var categoryName = categoryName || 'all';
+    return categoryName === 'all' ?
+           this.paintCollection :
+           new Paints(this.paintCollection.byCategory(categoryName)) 
   },
 
   showPaint: function(e) {

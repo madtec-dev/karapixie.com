@@ -45,7 +45,7 @@ var PaintFullView = Backbone.View.extend({
 
   //tagName: 'div',
 
-  el: 'body',
+  el: '.paint-app',
 
   template: _.template($('#paint-full-template').html()),
 
@@ -87,11 +87,11 @@ var PaintThumbListView = Backbone.View.extend({
 
 
 });
-var PaintNavigationView = new (Backbone.View.extend({
+var PaintControlsView = new (Backbone.View.extend({
 
-  el: 'body',
+  el: '.paint-app',
 
-  template: _.template($('#paint-navigation-template').html()),
+  template: _.template($('#paint-controls-template').html()),
 
   events: {
     'click .next': 'nextPaint',
@@ -103,11 +103,11 @@ var PaintNavigationView = new (Backbone.View.extend({
   },
 
   nextPaint: function() {
-    this.trigger('next');
+    this.trigger('nextPaint');
   },
 
   prevPaint: function() {
-    this.trigger('prev');
+    this.trigger('prevPaint');
   }
 
 }))();
@@ -164,7 +164,7 @@ var CategoryListView = Backbone.View.extend({
 
 var GalleryView = Backbone.View.extend({
  
-  el: 'body',
+  el: '.paint-app',
 
   initialize: function(params) {
 
@@ -191,3 +191,16 @@ var GalleryView = Backbone.View.extend({
   }
 
 });
+
+var PageNavView = new (Backbone.View.extend({
+
+  el: '.paint-app',
+
+  template: _.template($('#page-nav-template').html()),
+
+  render: function() {
+    this.$el.empty();
+    this.$el.append(this.template());
+  }
+
+}))();
