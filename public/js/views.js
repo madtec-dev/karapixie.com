@@ -24,7 +24,7 @@ var PaintThumbView = Backbone.View.extend({
   template: _.template($('#paint-thumb-template').html()),
 
   events: {
-    'click': 'show'
+    'click': 'paintSelected'
   },
 
   render: function() {
@@ -32,8 +32,8 @@ var PaintThumbView = Backbone.View.extend({
     return this;
   },
 
-  show: function() {
-    this.trigger('showPaint', {model: this.model});
+  paintSelected: function() {
+    this.trigger('paint:selected', this.model.get('title'));
   }
 
 });
@@ -72,13 +72,13 @@ var PaintThumbListView = Backbone.View.extend({
       var paintThumbView = new PaintThumbView({model: paint});
       self.$el.append(paintThumbView.render().el);
       
-      paintThumbView.bind('showPaint', self.showPaint, self);
+      paintThumbView.bind('paint:selected', self.paintSelected, self);
     });
     return this;
   },
 
-  showPaint: function(e) {
-    this.trigger('showPaint', {model: e.model});
+  paintSelected: function(paintTitle) {
+    this.trigger('paint:selected', paintTitle);
   },
 
   close: function() {
@@ -123,11 +123,11 @@ var CategoryView = Backbone.View.extend({
   template: _.template($('#category-template').html()),
 
   events: {
-    'click': 'showPaints'
+    'click': 'categorySelected'
   },
 
-  showPaints: function() {
-    this.trigger('showPaints', {model: this.model});
+  categorySelected: function() {
+    this.trigger('category:selected', this.model.get('name'));
   },
 
   render: function() {
@@ -143,8 +143,8 @@ var CategoryListView = Backbone.View.extend({
 
   tagName: 'div',
 
-  showPaints: function(e) {
-    this.trigger('showPaints', {model: e.model});
+  categorySelected: function(categoryName) {
+    this.trigger('category:selected', categoryName);
   },
 
   render: function() {
@@ -154,7 +154,7 @@ var CategoryListView = Backbone.View.extend({
       var categoryView = new CategoryView({model: category});
       self.$el.append(categoryView.render().el);
 
-      categoryView.bind('showPaints', self.showPaints, self);
+      categoryView.bind('category:selected', self.categorySelected, self);
     });
     return this;
   } 
@@ -166,28 +166,30 @@ var GalleryView = Backbone.View.extend({
  
   el: '.paint-app',
 
+  views: [],
+
   initialize: function(params) {
 
     this.paintThumbListView = new PaintThumbListView({collection: params.paintCollection});
     this.categoryListView = new CategoryListView({collection: params.categoryCollection});
 
-    this.paintThumbListView.bind('showPaint', this.showPaint, this);
-    this.categoryListView.bind('showPaints', this.showPaints, this);
+    this.paintThumbListView.bind('paint:selected', this.paintSelected, this);
+    this.categoryListView.bind('category:selected', this.categorySelected, this);
   },
+
 
   render: function() {
     this.$el.empty();
     this.$el.append(this.categoryListView.render().el);   
     this.$el.append(this.paintThumbListView.render().el);
-
   },
 
-  showPaint: function(e) {
-    this.trigger('showPaint', {model: e.model});
+  paintSelected: function(paintTitle) {
+    this.trigger('paint:selected', paintTitle);
   },
 
-  showPaints: function(e) {
-    this.trigger('showPaints', {model: e.model});
+  categorySelected: function(categoryName) {
+    this.trigger('category:selected', categoryName);
   }
 
 });
