@@ -8,7 +8,8 @@ var Paint = Backbone.Model.extend({
 var Category = Backbone.Model.extend({
 
   defaults: {
-    name: 'unnamed'
+    name: 'unnamed',
+    selected: false
   }
 
 });

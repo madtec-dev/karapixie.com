@@ -90,7 +90,10 @@ function Controller() {
 
     this.paintFilteredCollection = this.filterByCategory(this.categoryName);
     var categoryCollection = new Categories(categories);
-   
+
+    //. select the current category
+    var categorySelected = categoryCollection.findWhere({name: this.categoryName});
+    categorySelected.set('selected', true);
     /*
      * instead of creating a new view each time showPaints
      * is called, create the instance in the constructor and 

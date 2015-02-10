@@ -13,8 +13,8 @@ router.get('/', function(req, res) {
 });
 
 
-router.get('/paints', function(req, res) {
-  res.json(paints);
+router.get('/#paints', function(req, res) {
+  res.render('paints');
 });
 
 

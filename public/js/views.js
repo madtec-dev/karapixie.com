@@ -131,6 +131,9 @@ var CategoryView = Backbone.View.extend({
   },
 
   render: function() {
+    if ( this.model.get('selected') ) {
+      this.$el.css('color', 'red');
+    }
     this.$el.html(this.template({category: this.model}));
     return this;
   }

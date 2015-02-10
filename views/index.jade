@@ -1,13 +1,82 @@
 extends layout
 
 block content
-  
+
   div.paint-app
 
-    //div.page-nav
-
-    //div.gallery
-      ul.categories
-      ul.paints
-        
-    //div.paint--full
+  script.
+    var categories = [
+      {
+        name: 'all'
+      },
+      {
+        name: 'oil'
+      },
+      {
+        name: 'acrylic'
+      },
+      {
+        name: 'charcoal'
+      }
+    ]
+    
+    var paints = [
+      {
+        title:    'fun',
+        category: 'oil'
+      },
+      {
+        title:    'wide',
+        category: 'acrylic'
+      },
+      {
+        title:    'portrait',
+        category: 'oil'
+      },
+      {
+        title:    'square',
+        category: 'charcoal'
+      },
+      
+    ];
+      
+  script(type='text/template', id='page-nav-template').
+    <header>
+      <h2>Karapixie</h2>
+      <nav>
+        <ul>
+          <li>
+            <a href='/about'>about</a>
+          </li>
+          <li>
+            <a href='/contact'>contact</a>
+          </li>
+          <li>
+            <a href='/#paints'>paints</a>
+          </li>
+        </ul>
+      </nav>
+    </header>
+    
+  script(type='text/template', id='paint-thumb-template').
+    <%= paint.get('title') %>
+    
+  script(type='text/template', id='paint-full-template').
+    <%= paint.get('title') %>
+  
+  script(type='text/template', id='category-template').
+    <%= category.get('name') %>
+  
+  script(type='text/template', id='paint-controls-template').
+    <div class='navigation'>
+      <p class='next'>next</p>
+      <p class='prev'>prev</p>
+    </div>
+  
+  script(src='bower_components/zepto/zepto.min.js')
+  script(src='bower_components/underscore/underscore-min.js')
+  script(src='bower_components/backbone/backbone.js')
+  script(src='js/models.js')
+  script(src='js/collections.js')
+  script(src='js/views.js')
+  script(src='js/routes.js')
