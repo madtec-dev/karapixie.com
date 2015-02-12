@@ -13,9 +13,9 @@ var AppView = new (function() {
   }
 })();
 
-var PaintThumbView = Backbone.View.extend({
+app.PaintThumbView = Backbone.View.extend({
 
-  model: Paint,
+  model: app.Paint,
 
   tagName: 'p',
 
@@ -28,20 +28,20 @@ var PaintThumbView = Backbone.View.extend({
   },
 
   render: function() {
-    this.$el.html(this.template({paint: this.model}));
+        this.$el.html(this.template({paint: this.model, category: app.Ctrl.categoryName}));
     return this;
   },
 
   paintSelected: function() {
     this.trigger('paint:selected', this.model.get('title'));
+       
   }
 
 });
 
-
-var PaintFullView = Backbone.View.extend({
+app.PaintFullView = Backbone.View.extend({
   
-  model: Paint,
+  model: app.Paint,
 
   //tagName: 'div',
 
@@ -57,19 +57,19 @@ var PaintFullView = Backbone.View.extend({
 });
 
 
-var PaintThumbListView = Backbone.View.extend({
+app.PaintThumbListView = Backbone.View.extend({
 
-  model: Paint,
+  model: app.Paint,
 
   //el: '.paints',
 
   tagName: 'div',
 
-  render: function() {   
+  render: function(category) {   
     this.$el.empty();
     var self = this;
     this.collection.each(function(paint) {
-      var paintThumbView = new PaintThumbView({model: paint});
+        var paintThumbView = new app.PaintThumbView({model: paint});
       self.$el.append(paintThumbView.render().el);
       
       paintThumbView.bind('paint:selected', self.paintSelected, self);
@@ -87,7 +87,7 @@ var PaintThumbListView = Backbone.View.extend({
 
 
 });
-var PaintControlsView = new (Backbone.View.extend({
+app.PaintControlsView = new (Backbone.View.extend({
 
   el: '.paint-app',
 
@@ -112,9 +112,9 @@ var PaintControlsView = new (Backbone.View.extend({
 
 }))();
 
-var CategoryView = Backbone.View.extend({
+app.CategoryView = Backbone.View.extend({
 
-  model: Category,
+  model: app.Category,
 
   tagName: 'li',
 
@@ -122,13 +122,13 @@ var CategoryView = Backbone.View.extend({
 
   template: _.template($('#category-template').html()),
 
-  events: {
+  /*events: {
     'click': 'categorySelected'
   },
 
   categorySelected: function() {
     this.trigger('category:selected', this.model.get('name'));
-  },
+  },*/
 
   render: function() {
     if ( this.model.get('selected') ) {
@@ -140,24 +140,24 @@ var CategoryView = Backbone.View.extend({
 
 }); 
 
-var CategoryListView = Backbone.View.extend({
+app.CategoryListView = Backbone.View.extend({
 
   //el: '.categories',
 
   tagName: 'div',
 
-  categorySelected: function(categoryName) {
+  /*categorySelected: function(categoryName) {
     this.trigger('category:selected', categoryName);
-  },
+  },*/
 
   render: function() {
     this.$el.empty();
     var self = this;
     this.collection.each(function(category) {
-      var categoryView = new CategoryView({model: category});
+      var categoryView = new app.CategoryView({model: category});
       self.$el.append(categoryView.render().el);
 
-      categoryView.bind('category:selected', self.categorySelected, self);
+      /*categoryView.bind('category:selected', self.categorySelected, self);*/
     });
     return this;
   } 
@@ -165,19 +165,17 @@ var CategoryListView = Backbone.View.extend({
 });
 
 
-var GalleryView = Backbone.View.extend({
+app.GalleryView = Backbone.View.extend({
  
   el: '.paint-app',
 
-  views: [],
+  initialize: function(options) {
 
-  initialize: function(params) {
-
-    this.paintThumbListView = new PaintThumbListView({collection: params.paintCollection});
-    this.categoryListView = new CategoryListView({collection: params.categoryCollection});
+    this.paintThumbListView = new app.PaintThumbListView({collection: options.paintCollection});
+    this.categoryListView = new app.CategoryListView({collection: options.categoryCollection});
 
     this.paintThumbListView.bind('paint:selected', this.paintSelected, this);
-    this.categoryListView.bind('category:selected', this.categorySelected, this);
+    /*this.categoryListView.bind('category:selected', this.categorySelected, this);*/
   },
 
 
@@ -191,13 +189,14 @@ var GalleryView = Backbone.View.extend({
     this.trigger('paint:selected', paintTitle);
   },
 
-  categorySelected: function(categoryName) {
+  /*categorySelected: function(categoryName) {
     this.trigger('category:selected', categoryName);
-  }
+  }*/
 
 });
+        
 
-var PageNavView = new (Backbone.View.extend({
+app.PageNavView = new (Backbone.View.extend({
 
   el: '.paint-app',
 

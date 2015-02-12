@@ -1,11 +1,12 @@
-var Paint = Backbone.Model.extend({
+var app = app || {};
+app.Paint = Backbone.Model.extend({
 
   defaults: {
     title: 'untitled',
   }
 
 });
-var Category = Backbone.Model.extend({
+app.Category = Backbone.Model.extend({
 
   defaults: {
     name: 'unnamed',
@@ -13,3 +14,4 @@ var Category = Backbone.Model.extend({
   }
 
 });
+

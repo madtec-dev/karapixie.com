@@ -1,6 +1,6 @@
-var Paints = Backbone.Collection.extend({
+app.Paints = Backbone.Collection.extend({
 
-  model: Paint,
+  model: app.Paint,
 
   byCategory: function(category) {
     var filtered = this.filter(function(paint) {
@@ -10,8 +10,8 @@ var Paints = Backbone.Collection.extend({
   },
 
 });
-var Categories = Backbone.Collection.extend({
+app.Categories = Backbone.Collection.extend({
 
-  model: Category,
+  model: app.Category,
 
 });
