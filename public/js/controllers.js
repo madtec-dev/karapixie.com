@@ -1,42 +1,90 @@
 var app = app || {};
+
+app.Controller = {
+
+  paintCollection: new app.Paints(paints),
+
+  paintFilteredCollection: new app.Paints(paints),
+
+  categoryCollection: new app.Categories(categories),
+
+  paint: null,
+
+  
+  initialize: function() {
+    //app.PaintControlsView.bind('nextPaint', this.nextPaint, this);
+    //app.PaintControlsView.bind('prevPaint', this.prevPaint, this);
+    
+    //app.PaginatorControlsView.bind('nextPage', this.nextPage, this);
+    //app.PaginatorControlsView.bind('prevPage', this.prevPage, this);
+  },
+  
+  showPaints: function(categoryName, pageNum) {  
+
+    this.categoryName = categoryName || 'all';
+    this.pageNum = pageNum || 0;
+
+    this.paintFilteredCollection = app.PaintsFilter.byCategoryName(
+      this.paintCollection,
+      this.categoryName
+    );
+  
+    app.CollectionPaginator.setCollection(this.paintFilteredCollection);
+
+    var paginatorButtonsView = new app.PaginatorButtonsView();   
+    var paintThumbListView = new app.PaintThumbListView(
+        {collection: app.CollectionPaginator.getPage(this.pageNum)}
+    );
+    var categoryListView = new app.CategoryListView(
+        {collection: this.categoryCollection}
+    );
+    
+    var $paintApp = $('.paint-app');
+    $paintApp.empty();
+    $paintApp.append(categoryListView.render().el);
+    $paintApp.append(paintThumbListView.render().el);
+    $paintApp.append(paginatorButtonsView.render().el);
+
+  },
+
+}
+
 function Controller() {
   
   this.paintCollection = new app.Paints(paints);
 
   this.paintFilteredCollection = new app.Paints(paints);
 
+  this.categoryCollection = new app.Categories(categories);
+
   this.paint = null;
 
   this.categoryName = '';
 
-  this.galleryView = null;
-
   this.initialize = function() {
     app.PaintControlsView.bind('nextPaint', this.nextPaint, this);
     app.PaintControlsView.bind('prevPaint', this.prevPaint, this);
+    
+    app.PaginatorControlsView.bind('nextPage', this.nextPage, this);
+    app.PaginatorControlsView.bind('prevPage', this.prevPage, this);
   };
 
   this.showPaint = function(categoryName, paintName) {
-    // method is called from clic event, just have one param   
-    if (categoryName && !paintName) {
-      paintName = categoryName;
-    }
-    // method is called from router, have two params
-    else {
-      this.categoryName = categoryName;
+    
+    this.categoryName = categoryName || 'all';
 
-    }
-
+    //
     this.paintFilteredCollection = this.filterByCategory(this.categoryName);
+    
     this.paint = this.paintFilteredCollection.findWhere({title: paintName});
  
     var paintFullView = new app.PaintFullView({model: this.paint});
-
-    paintFullView.render();
-    app.PaintControlsView.render(); 
-    
-    /*var url = '/paints/category-' + this.categoryName + '/paint-' + this.paint.get('title');
-    Backbone.history.navigate(url);*/
+   
+    var $paintApp = $('.paint-app'); 
+    $paintApp.empty();
+    $paintApp.append(paintFullView.render().el);
+    $paintApp.append(app.PaintControlsView.render().el);
+ 
   };
 
   this.nextPaint = function() {
@@ -61,38 +109,40 @@ function Controller() {
     Backbone.history.navigate('/paints/category-' + this.categoryName + '/paint-' + nextPaint.get('title'), {trigger: true});
   };
 
-  this.showPaints = function(categoryName) {
+  this.nextPage = function() {
+     
+  };
+
+  this.showPaints = function(categoryName, pageNum) {  
 
     this.categoryName = categoryName || 'all';
+    var pageNum = pageNum || 0;
+    
+    this.paintFilteredCollection = this.filterByCategory(this.categoryName); 
+    this.categoryCollection.selectCategory(this.categoryName);
+    
+    var paintsPaginator = new app.CollectionPaginator(this.paintFilteredCollection.toArray());
+    var page = paintsPaginator.getPage(pageNum);
+  
+    //paintsPaginator.selectPage(page);
+
+    var paginatorButtonsView = new app.PaginatorButtonsView(
+        {collection: paintsPaginator}  
+    );
+    var paintThumbListView = new app.PaintThumbListView(
+        {collection: new app.Paints(page)}
+    );
+    var categoryListView = new app.CategoryListView(
+        {collection: this.categoryCollection}
+    );
     
 
-    this.paintFilteredCollection = this.filterByCategory(this.categoryName);
-    var categoryCollection = new app.Categories(categories);
+    var $paintApp = $('.paint-app');
+    $paintApp.empty();
+    $paintApp.append(categoryListView.render().el);
+    $paintApp.append(paintThumbListView.render().el);
+    $paintApp.append(paginatorButtonsView.render().el);
 
-    //. select the current category
-    var categorySelected = categoryCollection.findWhere({name: this.categoryName});
-    categorySelected.set('selected', true);
-    /*
-     * instead of creating a new view each time showPaints
-     * is called, create the instance in the constructor and 
-     * pass the collections when needed, ak.a dependency injection
-     */ 
-    this.galleryView = new app.GalleryView({
-      paintCollection: this.paintFilteredCollection,
-      categoryCollection: categoryCollection
-    });
-
-    /*
-     * bind this in the constructor
-     */
-    /*this.galleryView.bind('paint:selected', this.showPaint, this);
-    this.galleryView.bind('category:selected', this.showPaints, this);*/
-    
-    app.PageNavView.render();
-    this.galleryView.render();
-    /*var url = '/paints/category-' + this.categoryName;
-    Backbone.history.navigate(url);*/
-   
   };
 
   this.filterByCategory = function(categoryName) {
@@ -106,5 +156,8 @@ function Controller() {
 
     
 /*CONTROLLER*/
-app.Ctrl = new Controller();
+//app.Ctrl = new Controller();
+//app.Ctrl.initialize();
+
+app.Ctrl = app.Controller;
 app.Ctrl.initialize();

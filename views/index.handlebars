@@ -21,6 +21,10 @@
         category: 'oil'
       },
       {
+        title:    'lisa',
+        category: 'oil'
+      },
+      {
         title:    'wide',
         category: 'acrylic'
       },
@@ -63,10 +67,18 @@
   <a href='<%= "#paints/category-" + category.get("name") %>'> <%= category.get('name') %></a>
 </script>  
 <script type='text/template' id='paint-controls-template'>
-  <div class='navigation'>
-    <p class='next'>next</p>
-    <p class='prev'>prev</p>
-  </div>
+  <p class='next'>next</p>
+  <p class='prev'>prev</p>
+</script>
+<script type="text/template" id="paginator-button-template">
+  
+  <a href='<%= "#paints/category-" + category + "/page-" + pageNum %>'> <%= pageNum %></a>
+  
+</script>
+
+<script type='text/template' id='paginator-controls-template'>
+  <p class='paginator-control--next'>next</p>
+  <p class='paginator-control--prev'>prev</p>
 </script>
 <script src='bower_components/zepto/zepto.min.js'></script>
 <script src='bower_components/underscore/underscore-min.js'></script>
@@ -74,5 +86,7 @@
 <script src='js/models.js'></script>
 <script src='js/collections.js'></script>
 <script src='js/views.js'></script>
+<script src='js/filters.js'></script>
+<script src='js/paginator.js'></script>
 <script src='js/controllers.js'></script>
 <script src='js/routes.js'></script>

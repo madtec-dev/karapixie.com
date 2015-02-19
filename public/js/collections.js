@@ -13,5 +13,5 @@ app.Paints = Backbone.Collection.extend({
 app.Categories = Backbone.Collection.extend({
 
   model: app.Category,
-
+  
 });

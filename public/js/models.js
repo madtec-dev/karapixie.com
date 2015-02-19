@@ -10,8 +10,6 @@ app.Category = Backbone.Model.extend({
 
   defaults: {
     name: 'unnamed',
-    selected: false
   }
 
 });
-
