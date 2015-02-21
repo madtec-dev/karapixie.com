@@ -1,35 +1,26 @@
 /*
  * add exception for nextPage not found
- *
- *
  */
-app.CollectionPaginator = {
+app.CollectionPaginator = function(options)  {
 
-  offset: 0,
+  this.offset = options.offset || 0;
 
-  delta: 2,
+  this.delta = options.delta || 2;
 
-  limit: 0,
+  this.limit = this.delta;
+  
+  this.collection = options.collection;
 
-  currentPageNum: 0,
- 
-  setCollection: function(collection) {
-    this.offset = 0;
-    this.delta = 2;
-    this.limit = this.delta;
-    this.collection = collection;
-  },
-
-  nextPage: function() {
+  this.nextPage = function() {
     var collectionPage = this.collection;
     var nextPage = collectionPage.slice(this.offset, this.limit);
     this.offset += this.delta;
     this.limit += this.delta;
 
-    return new app.Paints(nextPage);
-  },
+    return nextPage;
+  };
 
-  prevPage: function() {
+  this.prevPage = function() {
     this.offset -= this.delta;
     this.limit -= this.delta;
 
@@ -39,10 +30,10 @@ app.CollectionPaginator = {
     if ( this.offset < 0 ) this.offset = 0;
     if ( this.limit < this.delta) this.limit = this.delta;
 
-    return new app.Paints(prevPage);
-  },
+    return prevPage;
+  };
 
-  getPage: function(pageNum) {
+  this.getPage = function(pageNum) {
     var page = this.nextPage();
     var i = 0;
     while ( i < pageNum ) {
@@ -52,9 +43,9 @@ app.CollectionPaginator = {
 
     return page;
 
-  },
+  };
   
-  getPageCount: function() {
+  this.getPageCount = function() {
     return Math.ceil(this.collection.length / this.delta);
-  },
+  };
 };

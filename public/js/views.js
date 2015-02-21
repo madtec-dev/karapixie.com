@@ -35,8 +35,6 @@ app.PaintFullView = Backbone.View.extend({
   
   model: app.Paint,
 
-  //el: '.paint-app',
-
   template: _.template($('#paint-full-template').html()),
 
   render: function() {
@@ -137,13 +135,14 @@ app.CategoryListView = Backbone.View.extend({
 
 app.PageNavView = new (Backbone.View.extend({
 
-  el: '.paint-app',
+  className: 'page-nav',
 
   template: _.template($('#page-nav-template').html()),
 
   render: function() {
     this.$el.empty();
-    this.$el.append(this.template());
+    this.$el.html(this.template());
+    return this;
   }
 
 }))();
@@ -180,7 +179,7 @@ app.PaginatorButtonsView = Backbone.View.extend({
   className: 'paints-paginator',
 
   render: function() {
-    for ( var pageNum = 0; pageNum < app.CollectionPaginator.getPageCount(); pageNum++ ) {
+    for ( var pageNum = 0; pageNum < app.Ctrl.paintsPaginator.getPageCount(); pageNum++ ) {
       var paginatorButtonView = new app.PaginatorButtonView({pageNum: pageNum});
       this.$el.append(paginatorButtonView.render().el);
     }
