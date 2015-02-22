@@ -12,6 +12,8 @@ app.Ctrl = {
 
   paintsPaginator: null,
 
+  pageNum: 0,
+
   //paintPaginator: new app.CollectionPaginator({delta: 1}),
 
   initialize: function() {
@@ -108,6 +110,9 @@ app.Ctrl = {
   },
 
   nextPage: function() {
+    /*
+     * this needs circular logic
+     */
     var nextPageNum = this.pageNum + 1;
     Backbone.history.navigate(
         '/paints/category-' + this.categoryName + '/page-' + nextPageNum + '/',
@@ -116,6 +121,9 @@ app.Ctrl = {
   },
   
   prevPage: function() {
+    /*
+     * this needs circular logic
+     */
     var prevPageNum = this.pageNum - 1;
     Backbone.history.navigate(
         '/paints/category-' + this.categoryName + '/page-' + prevPageNum + '/',

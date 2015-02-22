@@ -141,7 +141,10 @@ app.PageNavView = new (Backbone.View.extend({
 
   render: function() {
     this.$el.empty();
-    this.$el.html(this.template());
+    this.$el.html(this.template({
+      category: app.Ctrl.categoryName,
+      pageNum: app.Ctrl.pageNum
+    }));
     return this;
   }
 

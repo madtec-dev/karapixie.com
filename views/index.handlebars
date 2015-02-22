@@ -51,25 +51,30 @@
             <a href='/contact/'>contact</a>
           </li>
           <li>
-            <a href='/#paints/'>paints</a>
+            <a href='<%= "#paints/category-" + category + "/page-" + pageNum + "/" %>' >paints</a>
           </li>
         </ul>
       </nav>
     </header>
 </script>
+
 <script type='text/template' id='paint-thumb-template'>
     <a href='<%= "#paints/category-" + category  + "/paint-" + paint.get("title") %>'> <%= paint.get('title') %></a>
-</script>    
+</script>   
+
 <script type='text/template' id='paint-full-template'>
   <%= paint.get('title') %>
 </script>  
+
 <script type='text/template' id='category-template'>
   <a href='<%= "#paints/category-" + category.get("name") %>'> <%= category.get('name') %></a>
 </script>  
+
 <script type='text/template' id='paint-controls-template'>
   <p class='next'>next</p>
   <p class='prev'>prev</p>
 </script>
+
 <script type="text/template" id="paginator-button-template">
   
   <a href='<%= "#paints/category-" + category + "/page-" + pageNum %>'> <%= pageNum %></a>
