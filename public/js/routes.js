@@ -10,7 +10,7 @@ app.Router = new (Backbone.Router.extend({
    */
   routes: {
     'paints(/)': 'paintList',
-    'paints/category-:category/paint-:paint(/)': 'paint',
+    'paints/category-:category/page-:pageNum/paint-:paint(/)': 'paint',
     'paints/category-:category(/)': 'paintList',
     /*
      * pageNum is a string so we need to cast it to integer.
@@ -18,8 +18,9 @@ app.Router = new (Backbone.Router.extend({
     'paints/category-:category/page-:pageNum(/)': 'paintList',
   },
 
-  paint: function(categoryName, paintName) {
-    app.Ctrl.showPaint(categoryName, paintName);
+  paint: function(categoryName, pageNum, paintName) {
+    var pageNum = parseInt(pageNum, 10);
+    app.Ctrl.showPaint(categoryName, pageNum,  paintName);
   },
 
   paintList: function(categoryName, pageNum) {

@@ -48,4 +48,9 @@ app.CollectionPaginator = function(options)  {
   this.getPageCount = function() {
     return Math.ceil(this.collection.length / this.delta);
   };
+
+  this.getNumPageFor = function(elem) {
+    var itemIndex = this.collection.indexOf(elem); 
+    return Math.floor(itemIndex / this.delta);
+  };
 };

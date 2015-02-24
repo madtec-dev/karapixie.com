@@ -2,6 +2,12 @@ var app = app || {};
 
 app.Ctrl = {
 
+  /*
+   * put this collectionPaginator
+   * make it a backbone collection
+   * use on reset event to restore the pointers
+   */
+
   paintCollection: new app.Paints(paints),
 
   paintFilteredCollection: new app.Paints(paints),
@@ -14,8 +20,6 @@ app.Ctrl = {
 
   pageNum: 0,
 
-  //paintPaginator: new app.CollectionPaginator({delta: 1}),
-
   initialize: function() {
     app.PaintControlsView.bind('nextPaint', this.nextPaint, this);
     app.PaintControlsView.bind('prevPaint', this.prevPaint, this);
@@ -24,9 +28,10 @@ app.Ctrl = {
     app.PaginatorControlsView.bind('prevPage', this.prevPage, this);
   },
 
-  showPaint: function(categoryName, paintName) {
-  
+  showPaint: function(categoryName, pageNum,  paintName) {
+   
     this.categoryName = categoryName || 'all';
+    this.pageNum = pageNum || 0;
 
     this.paintFilteredCollection = app.PaintsFilter.byCategoryName(
       this.paintCollection,
@@ -67,10 +72,16 @@ app.Ctrl = {
       nextPaintIndex = 0;
     };
 
-    var nextPaintName = this.paintFilteredCollection.at(nextPaintIndex).get('title');
-    
+    var nextPaint = this.paintFilteredCollection.at(nextPaintIndex);
+    var nextPaintName = nextPaint.get('title');
+   
+    this.paintsPaginator = new app.CollectionPaginator({
+      collection: this.paintFilteredCollection
+    });
+    this.pageNum = this.paintsPaginator.getNumPageFor(nextPaint);
+
     Backbone.history.navigate(
-      '/paints/category-' + this.categoryName + '/paint-' + nextPaintName + '/',
+      '/paints/category-' + this.categoryName + '/page-' + this.pageNum + '/paint-' + nextPaintName + '/',
       {trigger: true} 
     );
     

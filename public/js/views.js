@@ -25,7 +25,12 @@ app.PaintThumbView = Backbone.View.extend({
   template: _.template($('#paint-thumb-template').html()),
 
   render: function() {
-    this.$el.html(this.template({paint: this.model, category: app.Ctrl.categoryName}));
+    this.$el.html(this.template({
+      paint: this.model, 
+      category: app.Ctrl.categoryName,
+      pageNum: app.Ctrl.pageNum
+    })
+    );
     return this;
   },
 
@@ -192,6 +197,11 @@ app.PaginatorButtonsView = Backbone.View.extend({
 });
 
 app.PaginatorControlsView = new (Backbone.View.extend({
+
+  /*
+   * access current num page and pageNumcount from the
+   * current paginator;
+   */
 
   className: 'paginator-controls',
 
