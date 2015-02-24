@@ -146,10 +146,7 @@ app.PageNavView = new (Backbone.View.extend({
 
   render: function() {
     this.$el.empty();
-    this.$el.html(this.template({
-      category: app.Ctrl.categoryName,
-      pageNum: app.Ctrl.pageNum
-    }));
+    this.$el.html(this.template());
     return this;
   }
 
@@ -213,7 +210,23 @@ app.PaginatorControlsView = new (Backbone.View.extend({
   },
 
   render: function() {
+    
     this.$el.html(this.template());
+  
+    this.delegateEvents();
+
+    // in first page, not prev button 
+    if (app.Ctrl.pageNum === 0) {
+      this.$el.children('.paginator-control--prev').css('background', 'grey');
+      this.$el.unbind('click', '.paginator-control--prev');
+      
+    };
+    // in last page, no next button
+    if (app.Ctrl.pageNum + 1 === app.Ctrl.paintsPaginator.getPageCount() ) {
+      this.$el.children('.paginator-control--next').css('background', 'grey'); 
+      this.$el.unbind('click', '.paginator-control--next');
+    };
+
     return this;
   },
 

@@ -1,4 +1,58 @@
 var app = app || {};
+/*
+ * add exception for nextPage not found
+ */
+app.CollectionPaginator = function(options) {
+
+  this.offset = options.offset || 0;
+  this.delta = options.delta || 2;
+  this.limit = this.delta;
+  this.collection = options.collection;
+
+  
+  this.nextPage = function() {
+    var collectionPage = this.collection;
+    var nextPage = collectionPage.slice(this.offset, this.limit);
+    this.offset += this.delta;
+    this.limit += this.delta;
+
+    return nextPage;
+  };
+
+  this.prevPage = function() {
+    this.offset -= this.delta;
+    this.limit -= this.delta;
+
+    var collectionPage = this.collection;
+    var prevPage = collectionPage.slice(this.offset, this.limit);
+
+    if ( this.offset < 0 ) this.offset = 0;
+    if ( this.limit < this.delta) this.limit = this.delta;
+
+    return prevPage;
+  };
+
+  this.getPage = function(pageNum) {
+    var page = this.nextPage();
+    var i = 0;
+    while ( i < pageNum ) {
+      page = this.nextPage();
+      i++;
+    }
+
+    return page;
+  };
+  
+  this.getPageCount = function() {
+    return Math.ceil(this.collection.length / this.delta);
+  };
+
+  this.getNumPageFor = function(elem) {
+    var itemIndex = this.collection.indexOf(elem); 
+    return Math.floor(itemIndex / this.delta);
+  };
+  
+};
 
 app.Ctrl = {
 
@@ -13,6 +67,8 @@ app.Ctrl = {
   paintFilteredCollection: new app.Paints(paints),
 
   categoryCollection: new app.Categories(categories),
+
+  paintsPaginator: new app.CollectionPaginator({}),
 
   paint: null,
 
@@ -97,10 +153,11 @@ app.Ctrl = {
       this.categoryName
     );
   
-
+    
     this.paintsPaginator = new app.CollectionPaginator({
       collection: this.paintFilteredCollection
     });
+    
 
     var paginatorButtonsView = new app.PaginatorButtonsView();   
     var paintThumbListView = new app.PaintThumbListView({
