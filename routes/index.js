@@ -2,6 +2,57 @@ var express = require('express');
 var router = express.Router();
 var paints = require('../data/paints');
 var path = require('path');
+var mongoose = require('mongoose');
+
+var Schema = mongoose.Schema;
+
+var categorySchema = new Schema({
+  
+  name: {
+    type: String,
+    required: true,
+    unique: true
+  },
+
+});
+
+var Category = mongoose.model('Category', categorySchema);
+
+var paintSchema = new Schema({
+  
+  title: {
+    type: String,
+    required: true,
+    unique: true
+  },
+
+  category: {
+    type: Schema.Types.ObjectId,
+    ref: 'Category'
+  },
+
+  imageSrc: {
+    type: String,
+    required: true
+  }
+
+});
+
+var Paint = mongoose.model('Paint', paintSchema);
+
+var categoryOil = Category.create({
+  name: 'oil'
+}, function(err, cat){
+  var newPaint = new Paint({
+    title: 'fun',
+    category: cat._id,
+    imageSrc: 'fun.jpg'
+  });
+  newPaint.save();
+});
+
+
+
 
 router.get('/', function(req, res) {
   res.render('index');
@@ -62,6 +113,16 @@ router.get('/api/paints', function(req, res) {
   res.json(paints);
   
 
+});
+
+router.get('/api/paint/:id', function(req, res) {
+  Paint.findById(req.params.id)
+    .populate('category')
+    .exec(function(err, paint) {
+      if(err) { return console.log(err); }
+      console.log(paint.category.name);
+      res.json(paint);
+  });
 });
 
 module.exports = router;

@@ -239,3 +239,21 @@ app.PaginatorControlsView = new (Backbone.View.extend({
   }
 
 }))();
+
+app.BreadcrumbView = new (Backbone.View.extend({
+
+  tagName: 'p',
+  
+  className: 'breadcrumb',
+
+  template: _.template($('#breadcrumb-template').html()),
+
+  render: function() {
+
+    console.log('rendering');
+
+    this.$el.html(this.template({category: app.Ctrl.categoryName, pageNum: app.Ctrl.pageNum}));
+
+    return this;
+  }
+}))();

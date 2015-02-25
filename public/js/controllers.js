@@ -103,6 +103,7 @@ app.Ctrl = {
     $paintApp.append(app.PageNavView.render().el);
     $paintApp.append(paintFullView.render().el);
     $paintApp.append(app.PaintControlsView.render().el);
+    $paintApp.append(app.BreadcrumbView.render().el);
   },
 
   nextPaint: function() {

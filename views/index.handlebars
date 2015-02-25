@@ -18,23 +18,28 @@
     var paints = [
       {
         title:    'fun',
-        category: 'oil'
+        category: 'oil',
+        imageSrc: 'fun.jpg'
       },
       {
         title:    'lisa',
-        category: 'oil'
+        category: 'oil',
+        imageSrc: 'lisa.jpg'
       },
       {
         title:    'wide',
-        category: 'acrylic'
+        category: 'acrylic',
+        imageSrc: 'wide.jpg'
       },
       {
         title:    'portrait',
-        category: 'oil'
+        category: 'oil',
+        imageSrc: 'portrait.jpg'
       },
       {
         title:    'square',
-        category: 'charcoal'
+        category: 'charcoal',
+        imageSrc: 'square.jpg'
       },
       
     ];
@@ -59,11 +64,16 @@
 </script>
 
 <script type='text/template' id='paint-thumb-template'>
-    <a href='<%= "#paints/category-" + category  + "/page-" + pageNum + "/paint-" + paint.get("title") %>'> <%= paint.get('title') %></a>
+  <a class='paint--thumb' href='<%= "#paints/category-" + category  + "/page-" + pageNum + "/paint-" + paint.get("title") %>'> 
+    <img src='<%= "/images/" + paint.get("imageSrc") %>' alt=''/>
+    <p class="paint__title"> <%= paint.get('title') %> </p>
+      
+  </a>
 </script>   
 
 <script type='text/template' id='paint-full-template'>
-  <%= paint.get('title') %>
+  <h3> <%= paint.get('title') %> </h3>
+  <img class='paint--full' src='<%= "/images/" + paint.get("imageSrc") %>' alt=''/>
 </script>  
 
 <script type='text/template' id='category-template'>
@@ -85,6 +95,13 @@
   <p class='paginator-control--next'>next</p>
   <p class='paginator-control--prev'>prev</p>
 </script>
+
+<script type="text/template" id='breadcrumb-template'>
+  <a href='<%= "#paints" %>'> paints </a>
+  <a href='<%= "#paints/category-" + category %>'> <%= category %> </a>
+  <a href='<%= "#paints/category-" + category + "/page-" + pageNum %>'> <%= pageNum %> </a>
+</script>
+
 <script src='bower_components/zepto/zepto.min.js'></script>
 <script src='bower_components/underscore/underscore-min.js'></script>
 <script src='bower_components/backbone/backbone.js'></script>
