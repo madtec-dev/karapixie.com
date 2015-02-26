@@ -1,4 +1,5 @@
 var app = app || {};
+
 app.Paint = Backbone.Model.extend({
 
   defaults: {
@@ -6,6 +7,7 @@ app.Paint = Backbone.Model.extend({
   }
 
 });
+
 app.Category = Backbone.Model.extend({
 
   defaults: {

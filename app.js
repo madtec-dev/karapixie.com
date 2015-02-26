@@ -10,6 +10,7 @@ var mongoose = require('mongoose');
 var routes = require('./routes/index');
 var users = require('./routes/users');
 
+// db setup
 mongoose.connect('mongodb://localhost:27017/karapixie');
 var db = mongoose.connection;
 

@@ -18,8 +18,31 @@ var categorySchema = new Schema({
 
 var Category = mongoose.model('Category', categorySchema);
 
+var paintImageSchema = new Schema({
+
+  name: {
+    type: String
+  },
+
+  width: {
+    type: Number
+  },
+
+  height: {
+    type: Number
+  },
+
+  sizeName: {
+    type: String
+  }
+
+});
+
 var paintSchema = new Schema({
-  
+ 
+  /*
+   * rename this to name
+   */ 
   title: {
     type: String,
     required: true,
@@ -31,14 +54,13 @@ var paintSchema = new Schema({
     ref: 'Category'
   },
 
-  imageSrc: {
-    type: String,
-    required: true
-  }
+  imageSet: [paintImageSchema]
 
 });
 
+
 var Paint = mongoose.model('Paint', paintSchema);
+  
 
 var categoryOil = Category.create({
   name: 'oil'
@@ -46,8 +68,22 @@ var categoryOil = Category.create({
   var newPaint = new Paint({
     title: 'fun',
     category: cat._id,
-    imageSrc: 'fun.jpg'
   });
+
+  newPaint.imageSet.addToSet({
+    name: 'sfdasfasfda',
+    width: 1920,
+    height: 800,
+    sizeName: 'large'
+  });
+  
+  newPaint.imageSet.addToSet({
+    name: 'asdasd',
+    width: 600,
+    height: 400,
+    sizeName: 'small'
+  });
+
   newPaint.save();
 });
 

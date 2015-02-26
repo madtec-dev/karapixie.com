@@ -19,7 +19,10 @@
       {
         title:    'fun',
         category: 'oil',
-        imageSrc: 'fun.jpg'
+        imageSrc: 'fun.jpg',
+        imageSet: {
+        
+        }
       },
       {
         title:    'lisa',
@@ -65,6 +68,7 @@
 
 <script type='text/template' id='paint-thumb-template'>
   <a class='paint--thumb' href='<%= "#paints/category-" + category  + "/page-" + pageNum + "/paint-" + paint.get("title") %>'> 
+    
     <img src='<%= "/images/" + paint.get("imageSrc") %>' alt=''/>
     <p class="paint__title"> <%= paint.get('title') %> </p>
       
