@@ -3,6 +3,7 @@ var router = express.Router();
 var paints = require('../data/paints');
 var path = require('path');
 var mongoose = require('mongoose');
+var gm = require('gm');
 
 var Schema = mongoose.Schema;
 
@@ -10,8 +11,7 @@ var categorySchema = new Schema({
   
   name: {
     type: String,
-    required: true,
-    unique: true
+    required: true
   },
 
 });
@@ -36,6 +36,7 @@ var paintImageSchema = new Schema({
     type: String
   }
 
+
 });
 
 var paintSchema = new Schema({
@@ -45,8 +46,7 @@ var paintSchema = new Schema({
    */ 
   title: {
     type: String,
-    required: true,
-    unique: true
+    required: true
   },
 
   category: {
@@ -58,6 +58,44 @@ var paintSchema = new Schema({
 
 });
 
+function createImage(image, size) {
+  console.log(image.title);
+  var baseDir = 'public/images/';
+  gm(baseDir + image.title + '.jpg')
+  .options({imageMagick: true})
+  .resize(size, '%')
+  .write(baseDir + image.title + size + '.jpg', function(err) {
+    if(err) {
+      return console.log(err);
+    } else {
+      console.log('done');
+      var width, height;
+      gm(baseDir + image.title + size + '.jpg')
+      .options({imageMagick: true})
+      .size(function(err, size) {
+        width = size.width;
+        height = size.height;
+        
+      }) 
+      return {
+        name: image.title + size,
+        width: width,
+        height: height,
+        sizeName: size + ''
+      }
+    }
+  })
+
+}
+
+paintSchema.methods.createImages = function(image) {
+  console.log(image.title);
+  var sizes = [80, 40];
+  for( var i = 0; i < sizes.length; i++ ) {
+    this.imageSet.addToSet(createImage(image, sizes[i]));
+  }
+  
+};
 
 var Paint = mongoose.model('Paint', paintSchema);
   
@@ -160,5 +198,14 @@ router.get('/api/paint/:id', function(req, res) {
       res.json(paint);
   });
 });
+
+router.post('/api/paints', function(req, res) {
+  console.log(req.body.title);
+  var paint = new Paint();
+  paint.createImages({
+    title: req.body.title,
+    category: req.body.category
+  })
+})
 
 module.exports = router;
