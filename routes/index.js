@@ -58,48 +58,74 @@ var paintSchema = new Schema({
 
 });
 
-function createImage(image, size) {
-  console.log(image.title);
+
+function createImage(image, per, cb) {
+  //console.log(image.title);
   var baseDir = 'public/images/';
+ 
+  /*
+   * method call order
+   * size -> resize -> write
+   */ 
   gm(baseDir + image.title + '.jpg')
-  .options({imageMagick: true})
-  .resize(size, '%')
-  .write(baseDir + image.title + size + '.jpg', function(err) {
-    if(err) {
-      return console.log(err);
-    } else {
-      console.log('done');
-      var width, height;
-      gm(baseDir + image.title + size + '.jpg')
-      .options({imageMagick: true})
-      .size(function(err, size) {
-        width = size.width;
-        height = size.height;
-        
-      }) 
-      return {
-        name: image.title + size,
-        width: width,
-        height: height,
-        sizeName: size + ''
+    .options({imageMagick: true})
+    .resize(per, '%')
+    .write(baseDir + image.title + per + '.jpg', function(err) {
+      if(err) {
+        return console.log(err);
+      } 
+      else {
+        gm(baseDir + image.title + per + '.jpg')
+          .options({imageMagick: true})
+          .size(function(err, size) {
+          if (!err) {   
+            width = size.width;
+            height = size.height;
+         
+            cb({
+              name: image.title + per,
+              width: width,
+              height: height,
+              sizeName: per + ''
+            })
+          }
+        })
       }
-    }
-  })
+    })
 
 }
 
 paintSchema.methods.createImages = function(image) {
-  console.log(image.title);
+  //console.log(image.title);
+ 
+  var self = this;
   var sizes = [80, 40];
+
+  function a(o) {
+    self.imageSet.addToSet(o);
+    
+  
+    if ( self.imageSet.length === sizes.length) {
+      self.title = image.title;
+      self.save();
+    };
+
+    //console.log(self.imageSet.length)
+    
+  }
+
+  
   for( var i = 0; i < sizes.length; i++ ) {
-    this.imageSet.addToSet(createImage(image, sizes[i]));
+    createImage(image, sizes[i], a)
+    //this.imageSet.addToSet(createImage(image, sizes[i], a));
   }
   
+
 };
 
 var Paint = mongoose.model('Paint', paintSchema);
   
-
+/*
 var categoryOil = Category.create({
   name: 'oil'
 }, function(err, cat){
@@ -124,8 +150,7 @@ var categoryOil = Category.create({
 
   newPaint.save();
 });
-
-
+*/
 
 
 router.get('/', function(req, res) {
@@ -189,7 +214,7 @@ router.get('/api/paints', function(req, res) {
 
 });
 
-router.get('/api/paint/:id', function(req, res) {
+router.get('/api/paints/:id', function(req, res) {
   Paint.findById(req.params.id)
     .populate('category')
     .exec(function(err, paint) {
@@ -200,11 +225,11 @@ router.get('/api/paint/:id', function(req, res) {
 });
 
 router.post('/api/paints', function(req, res) {
-  console.log(req.body.title);
+  //console.log(req.body.title);
   var paint = new Paint();
   paint.createImages({
     title: req.body.title,
-    category: req.body.category
+    //category: req.body.category
   })
 })
 
