@@ -16,24 +16,52 @@ var categorySchema = new Schema({
 
 });
 
+categorySchema.statics.findOrCreate = function(name, cb) {
+  /*
+   * see if return whole category object or just the id
+   */
+  this.findOne({name: name}, function(err, category) {
+    if ( err ) { cb.call(this, err) }
+    else {
+      if ( category ) {
+        cb.call(this, null, category);
+      }
+      else {
+        Category.create({name: name}, function(err, category) {
+          if ( err ) { cb.call(this, err) }
+          else {
+            cb.call(this, null, category);
+          }
+        });
+      }
+    }  
+
+  });
+
+};
+
 var Category = mongoose.model('Category', categorySchema);
 
 var paintImageSchema = new Schema({
 
   name: {
-    type: String
+    type: String,
+    required: true
   },
 
   width: {
-    type: Number
+    type: Number,
+    required: true
   },
 
   height: {
-    type: Number
+    type: Number,
+    required: true
   },
 
   sizeName: {
-    type: String
+    type: String,
+    required: true
   }
 
 
@@ -59,34 +87,45 @@ var paintSchema = new Schema({
 });
 
 
-paintSchema.methods.createImage = function(image, per, cb, cb2) {
+paintSchema.methods.createImage = function(image, per, cb) {
   var self = this;
   var baseDir = 'public/images/';
  
   var img = gm(baseDir + image.title + '.jpg')
     img.options({imageMagick: true})
     .size(function(err, size) {
-      if ( err ) { console.log(err) }
+      if ( err ) {
+        /*
+         * know what the error code means
+         */ 
+        cb.call(self, err); 
+      }
       else {
         var width = Math.round(size.width * per / 100);
         var height = Math.round(size.height * per / 100);
         img.resize(width, height)
+        /*
+         * know how to force an error on writing to disk
+         */
         .write(baseDir + image.title + per + '.jpg', function(err) {
-          if ( err ) { console.log(err) }
+          if ( err ) { 
+            cb.call(this, err); 
+          }
           else { 
-            cb.call(self,{
+            self.addImage({
               name: image.title + per,
               width: width,
               height: height,
               sizeName: per + ''
-            }, cb2)
+            }, cb)
           }
         })
       }
     })
 }
 
-/*function a() {
+/*
+ function a() {
   this.c = 'ok';
 this.e = function() {
     console.log(this.c);
@@ -106,21 +145,34 @@ paintSchema.virtual('sizes').get(function() {
 paintSchema.methods.addImage = function(image, cb) {
   this.imageSet.addToSet(image);
   if ( this.imageSet.length === this.sizes.length) {
-    cb.call(this);
+    this.saveImages(cb);
   }
 }
 
-paintSchema.methods.saveImages = function() {
-  this.save();
+paintSchema.methods.saveImages = function(cb) {
+  this.save(function(err, paint) { 
+    err ? cb.call(this, err) : cb.call(this, paint)
+  });
 }
 
 paintSchema.methods.createImages = function(image, cb) {
+ 
+  var self = this; 
+  Category.findOrCreate(image.category, function(err, category) {
+    
+    if ( err ) {
+      cb.call(self, err);
+    }
+    else {
+      self.title = image.title;
+      self.category = category._id; 
+      
+      for( var i = 0; i < self.sizes.length; i++ ) {
+        self.createImage(image, self.sizes[i], cb)
+      }
+    }
+  });
   
-  this.title = image.title;
-  for( var i = 0; i < this.sizes.length; i++ ) {
-    this.createImage(image, this.sizes[i], this.addImage, cb)
-    //this.imageSet.addToSet(createImage(image, sizes[i], a));
-  }
 };
 
 var Paint = mongoose.model('Paint', paintSchema);
@@ -225,14 +277,26 @@ router.get('/api/paints/:id', function(req, res) {
 });
 
 router.post('/api/paints', function(req, res) {
-  //console.log(req.body.title);
   var paint = new Paint();
   paint.createImages({
     title: req.body.title,
-    //category: req.body.category
-  }, function() {
-    this.saveImages();
-  })
+    category: req.body.category
+  }, function(err, paint) {
+    if ( err ) { 
+      /*
+       * login the erros with morgan
+       * send back human readable errors
+       */
+      res.send(err);
+    }
+    else {
+      res.json(paint) 
+    }
+  });
 })
+
+router.put('/api/paints/:id', function(req, res) {
+
+});
 
 module.exports = router;
