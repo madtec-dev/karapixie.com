@@ -1,3 +1,60 @@
+/*TODO
+ * add a virtual method to get
+ * the name of the paint + size
+ *
+ * add search interface for paints & category
+ *
+ * generate random paint names
+ * when upload images
+ *
+ * add URL property to paint images
+ * in order to download the resource
+ *
+ * add errors to morgan logger
+ *
+ *  timestamp use ISO 8601 and UTC
+ *
+ *  API
+ *
+ *  determine if the paint ids are going to be the name of the
+ *  paint or a generated id, if the id is the name of the paint 
+ *  enable a put request over /api/paints to create a new paint,
+ *  in the other way just enable the option via post.
+ *
+ *  media types for the images, jpg png
+ *
+ *
+ *  enable /api/paints?_body=false and /api/paints/:paintId?_body=false
+ *  in order to control when to download the actual img
+ *
+ *  implement pagination
+ *  /api/paints?offset=10;limit=5
+ *
+ *  res
+ *    {
+ *      href: link of the current page
+ *      offset: current offset
+ *      limit: current limit
+ *      
+ *      first, last, next, prev as i.e
+ *
+ *      first: {
+ *        href: link to first item in page
+ *      }
+ *
+ *    }
+ *
+ *  partial representation
+ *
+ *  /api/paints/:paintId?fields=title,src
+ *  returns title and src for a given paint
+ *  
+ *  reference expansion
+ *
+ *  /api/paints/:paintId?expand=category
+ *  returns paint plus category data in one req
+ */
+
 var express = require('express');
 var router = express.Router();
 var paints = require('../data/paints');
@@ -113,10 +170,10 @@ paintSchema.methods.createImage = function(image, per, cb) {
           }
           else { 
             self.addImage({
-              name: image.title + per,
-              width: width,
-              height: height,
-              sizeName: per + ''
+                name: image.title + per
+              , width: width
+              , height: height
+              , sizeName: per + ''
             }, cb)
           }
         })
@@ -151,7 +208,7 @@ paintSchema.methods.addImage = function(image, cb) {
 
 paintSchema.methods.saveImages = function(cb) {
   this.save(function(err, paint) { 
-    err ? cb.call(this, err) : cb.call(this, paint)
+    err ? cb.call(this, err) : cb.call(this, null, paint)
   });
 }
 
@@ -204,6 +261,34 @@ var categoryOil = Category.create({
 });
 */
 
+// DB reset middleware
+// Move thise middleware to app.js (implement with app.use)
+router.route('/api/*').all(function(req, res, next) {
+    mongoose.connection.db.dropDatabase(function(err) {
+      if ( err ) { 
+        return console.log(err) 
+      }
+      else {
+        Category.create({name: 'oil'}, function(err, category) {
+          if ( err ) {
+            return console.log(err);
+          }
+          else {
+            var paint = new Paint();
+            paint.createImages({title: 'square', category: 'oil'}, function(err, paint) {
+              if( err ) {
+                return console.log(err);
+              }
+              else {
+                next();
+              }
+            })
+          }
+        });
+      }
+  });
+});
+
 
 router.get('/', function(req, res) {
   res.render('index');
@@ -217,48 +302,7 @@ router.get('/contact', function(req, res) {
   res.render('contact');
 });
 
-/*
- *  API
- *
- *  determine if the paint ids are going to be the name of the
- *  paint or a generated id, if the id is the name of the paint 
- *  enable a put request over /api/paints to create a new paint,
- *  in the other way just enable the option via post.
- *
- *  media types for the images, jpg png
- *
- *  timestamp use ISO 8601 and UTC
- *
- *  enable /api/paints?_body=false and /api/paints/:paintId?_body=false
- *  in order to control when to download the actual img
- *
- *  implement pagination
- *  /api/paints?offset=10;limit=5
- *
- *  res
- *    {
- *      href: link of the current page
- *      offset: current offset
- *      limit: current limit
- *      
- *      first, last, next, prev as i.e
- *
- *      first: {
- *        href: link to first item in page
- *      }
- *
- *    }
- *
- *  partial representation
- *
- *  /api/paints/:paintId?fields=title,src
- *  returns title and src for a given paint
- *  
- *  reference expansion
- *
- *  /api/paints/:paintId?expand=category
- *  returns paint plus category data in one req
- */
+// PAINTS API
 router.get('/api/paints', function(req, res) {
 
   res.json(paints);
@@ -271,7 +315,6 @@ router.get('/api/paints/:id', function(req, res) {
     .populate('category')
     .exec(function(err, paint) {
       if(err) { return console.log(err); }
-      console.log(paint.category.name);
       res.json(paint);
   });
 });
@@ -295,8 +338,86 @@ router.post('/api/paints', function(req, res) {
   });
 })
 
-router.put('/api/paints/:id', function(req, res) {
+router.patch('/api/paints/:id', function(req, res) {
+  // findOneAndUpdate will update the fullfilled fields within req.body
+  // it will skip the empty ones
+  Paint.findOneAndUpdate({_id: req.params.id}, req.body, {new: true}, function(err, paint){
+    if ( err ) {
+      return console.log(err);
+    } 
+    else {
+      res.json(paint); 
+    }
+  })
+});
 
+router.delete('/api/paints/:id', function(req, res) {
+  Paint.findOneAndRemove({_id: req.params.id}, function(err, paint) {
+    if ( err ) {
+      return console.log(err);
+    } 
+    else {
+      res.json(paint); 
+    }
+  }); 
+});
+
+// CATEGORY API
+router.get('/api/categories', function(req, res) {
+  Category.find({}, function(err, categories) {
+    if ( err ) {
+      return console.log(err);
+    }
+    else {
+      res.json(categories);
+    }
+  });
+});
+
+router.get('/api/categories/:id', function(req, res) {
+  Category.findById(req.params.id, function(err, category) {
+      if ( err ) { 
+        return console.log(err); 
+      }
+      else {
+        res.json(category);
+      }
+  });
+});
+
+router.post('/api/categories', function(req, res) {
+  Category.create({name: req.body.category}, function(err, category) {
+    if ( err ) {
+      return console.log(err);
+    }
+    else {
+      res.json(category);
+    }
+  });
+});
+
+router.patch('/api/categories/:id', function(req, res) {
+  // findOneAndUpdate will update the fullfilled fields within req.body
+  // it will skip the empty ones
+  Category.findOneAndUpdate({_id: req.params.id}, req.body, {new: true}, function(err, category){
+    if ( err ) {
+      return console.log(err);
+    } 
+    else {
+      res.json(category); 
+    }
+  })
+});
+
+router.delete('/api/categories/:id', function(req, res) {
+  Category.findOneAndRemove({_id: req.params.id}, function(err, category) {
+    if ( err ) {
+      return console.log(err);
+    } 
+    else {
+      res.json(category); 
+    }
+  }); 
 });
 
 module.exports = router;

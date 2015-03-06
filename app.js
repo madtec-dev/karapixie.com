@@ -12,10 +12,10 @@ var users = require('./routes/users');
 
 // db setup
 mongoose.connect('mongodb://localhost:27017/karapixie');
-var db = mongoose.connection;
+var conn = mongoose.connection;
 
-db.on('error', console.error.bind(console, 'connection error:'));
-db.once('open', function callback() {
+conn.on('error', console.error.bind(console, 'connection error:'));
+conn.once('open', function callback() {
   console.log('Connected to DB');
 })
 
@@ -33,6 +33,8 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
+
+
 
 app.use('/', routes);
 app.use('/users', users);
