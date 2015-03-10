@@ -2,7 +2,8 @@
  * add a virtual method to get
  * the name of the paint + size
  *
- * add search interface for paints & category
+ * add search interface for paints & category i.e
+ * /paints?category=oil&name=square
  *
  * generate random paint names
  * when upload images
@@ -263,6 +264,7 @@ var categoryOil = Category.create({
 
 // DB reset middleware
 // Move thise middleware to app.js (implement with app.use)
+/*
 router.route('/api/*').all(function(req, res, next) {
     mongoose.connection.db.dropDatabase(function(err) {
       if ( err ) { 
@@ -288,7 +290,7 @@ router.route('/api/*').all(function(req, res, next) {
       }
   });
 });
-
+*/
 
 router.get('/', function(req, res) {
   res.render('index');
