@@ -3,36 +3,30 @@ var path = require('path');
 var mongoose = require('mongoose');
 var chai = require('chai');
 var expect = chai.expect;
+var sinon = require('sinon');
 
 var Paint = require('../models/paint');
 
 describe('Paint', function() {
   
-  var imagesDir = 'test/images';
+  var imagesPath = 'test/images';
 
   before(function() {
  
     mongoose.connect('mongodb://localhost:27017/karapixie');
     this.conn = mongoose.connection;
 
-    /*
-    conn.on('error', console.error.bind(console, 'connection error:'));
-    conn.once('open', function callback() {
-      console.log('Connected to DB');
-    })
-    */
 
-
-    fs.mkdirSync(imagesDir);
+    fs.mkdirSync(imagesPath);
     var image = fs.readFileSync('test/square.jpg');
-    fs.writeFileSync(imagesDir + '/square.jpg', image);
+    fs.writeFileSync(imagesPath + '/square.jpg', image);
      
   });
 
   after(function() {
     this.conn.close();
     fs.unlinkSync('test/images/square.jpg');
-    fs.rmdirSync(imagesDir)
+    fs.rmdirSync(imagesPath)
   });
 
   describe('initialization', function() {
@@ -42,29 +36,40 @@ describe('Paint', function() {
 
       expect(paint).to.be.ok;
       expect(paint.sizes).to.eql([80, 40]);
-      expect(paint.baseDir).to.equal('public/images');
+      expect(paint.imagesPath).to.equal('public/images');
     });
 
-  });
+    /*it('should create a paint', function(done) {
+      var paint = Paint.createPaint({
+          title: 'square'
+        , category: 'oil'
+        , imagesPath: 'test/images'
+        , imageCanonicalName: 'xxxx.jpg'
+      })
+      done();
+      expect(paint).to.equal('');;
+    });*/
 
-  
-  describe('PaintImage', function() {
-    it('should read a paint image', function() {
-  
+    it('should create a cononical image', function() {
       var paint = new Paint({
-        title: 'square',
-        category: 'oil',
-        baseDir: 'test/images'
-      });
-      
+          imageCanonicalName: 'xxx.jpg'
+        , imagesPath: 'test/images'
+      })
+      var spy = sinon.spy(paint, "createImageCanonical");
+      expect(spy.called).to.be.true;
+    })
 
-      var canonicalImage = paint.readCanonicalImage();
-      expect(canonicalImage).to.be.ok; 
-       
-      
-
-    }) 
   });
+
   
+  describe('PaintImages', function() {
+    it('should have a canonical image path', function() {
+
+      var paint = new Paint({imageCanonicalName: 'square.jpg'});
+      expect(paint.imageCanonicalPath).to.equal('public/images/square.jpg');
+
+    }); 
+
+  });
   
 })

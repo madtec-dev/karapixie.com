@@ -1,6 +1,8 @@
 var mongoose = require('mongoose');
 var gm = require('gm');
 var Category = require('./category');
+var path = require('path');
+var fs = require('fs');
 
 
 var Schema = mongoose.Schema;
@@ -40,10 +42,15 @@ var paintSchema = new Schema({
     required: true
   },
 
-  baseDir: {
+  imagesPath: {
     type: String,
     required: true,
     default: 'public/images'
+  },
+
+  imageCanonicalName: {
+    type: String,
+    required: true
   },
 
   category: {
@@ -55,18 +62,46 @@ var paintSchema = new Schema({
 
 });
 
-paintSchema.methods.readCanonicalImage = function() {
+paintSchema.virtual('imageCanonicalPath').get(function() {
 
-  var imagePath = this.baseDir + this.title + '.jpg';
-  return gm(imagePath);
+  return path.join(this.imagesPath, this.imageCanonicalName);
 
+});
+
+paintSchema.statics.createPaint = function(paintData) {
+  var paint = new Paint(paintData);
+  paint.createImageCanonical(paint, function(err, paint){
+    if ( err ) {
+      return console.log(err);
+    }
+    else {
+      return paint;
+    }
+  });
+}
+
+paintSchema.methods.createImageCanonical = function(paint, cb) {
+  gm(paint.imageCanonicalPath).size(function(err, size) {
+    if ( err ) {
+      console.log(err.code);
+      cb('err');
+    }
+    else {
+      paint.addImage({
+          name: paint.imageCanonicalName
+        , width: size.width
+        , height: size.height
+        , sizeName: '100'
+      }, cb);
+    }
+  })
 };
 
 paintSchema.methods.createImage = function(per, cb) {
   var self = this;
   //var baseDir = 'public/images/';
- 
-  var img = gm(self.baseDir + self.title + '.jpg')
+  return gm(imagePath);
+  var img = gm(self.imagesPath + self.title + '.jpg')
     img.options({imageMagick: true})
     .size(function(err, size) {
       if ( err ) {
@@ -82,7 +117,7 @@ paintSchema.methods.createImage = function(per, cb) {
         /*
          * know how to force an error on writing to disk
          */
-        .write(self.baseDir + image.title + per + '.jpg', function(err) {
+        .write(self.imagesPath + image.title + per + '.jpg', function(err) {
           if ( err ) { 
             cb.call(this, err); 
           }
@@ -106,9 +141,9 @@ paintSchema.virtual('sizes').get(function() {
 
 paintSchema.methods.addImage = function(image, cb) {
   this.imageSet.addToSet(image);
-  if ( this.imageSet.length === this.sizes.length) {
+  //if ( this.imageSet.length === this.sizes.length) {
     this.saveImages(cb);
-  }
+  //}
 }
 
 paintSchema.methods.saveImages = function(cb) {
