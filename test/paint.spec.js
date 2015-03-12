@@ -7,9 +7,16 @@ var sinon = require('sinon');
 
 var Paint = require('../models/paint');
 
-describe.skip('Paint', function() {
+describe('Paint', function() {
+  this.timeout(5000);
   
   var imagesPath = 'test/images';
+  var paintData = {
+      title: 'square'
+    , imagesPath: 'test'
+    , category: 'oil'
+    , imageCanonicalName: 'test/square.jpg'
+  };
 
   before(function() {
  
@@ -17,50 +24,33 @@ describe.skip('Paint', function() {
     this.conn = mongoose.connection;
 
 
-    fs.mkdirSync(imagesPath);
+    /*fs.mkdirSync(imagesPath);
     var image = fs.readFileSync('test/square.jpg');
     fs.writeFileSync(imagesPath + '/square.jpg', image);
-     
+    */
   });
 
   after(function() {
     this.conn.close();
-    fs.unlinkSync('test/images/square.jpg');
-    fs.rmdirSync(imagesPath)
+    /*fs.unlinkSync('test/images/square.jpg');
+    fs.rmdirSync(imagesPath)*/
   });
 
-  describe('initialization', function() {
- 
-    it('has default attributes', function() {
-      var paint = new Paint();
-
-      expect(paint).to.be.ok;
-      expect(paint.sizes).to.eql([80, 40]);
-      expect(paint.imagesPath).to.equal('public/images');
-    });
-
-    /*it('should create a paint', function(done) {
-      var paint = Paint.createPaint({
-          title: 'square'
-        , category: 'oil'
-        , imagesPath: 'test/images'
-        , imageCanonicalName: 'xxxx.jpg'
-      })
+  it('should create a paint', function(done){
+    Paint.createPaint(paintData, function(err, paint){
+      expect(err).to.be.null;
+      expect(paint.title).to.equal('square');
+      expect(paint.imagesPath).to.equal('test');
+      expect(paint.imageCanonicalName).to.equal('test/square.jpg');
       done();
-      expect(paint).to.equal('');;
-    });*/
-
-    it('should create a cononical image', function() {
-      var paint = new Paint({
-          imageCanonicalName: 'xxx.jpg'
-        , imagesPath: 'test/images'
-      })
-      var spy = sinon.spy(paint, "createImageCanonical");
-      paint.createImageCanonical(paint, spy);
-      expect(spy.called).to.be.true;
     })
 
   });
- 
-  
+
+  it('should save a paint', function(done) {
+    Paint.createPaint(paintData, function(err, paint) {
+      paint.save(done);
+    
+    });
+  })
 })

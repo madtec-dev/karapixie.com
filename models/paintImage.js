@@ -22,11 +22,6 @@ var paintImageSchema = new Schema({
   height: {
     type: Number,
     required: true
-  },
-
-  sizeName: {
-    type: String,
-    required: true
   }
 
 
@@ -41,32 +36,38 @@ var paintImageSchema = new Schema({
  */
 
 paintImageSchema.statics.createPaintImageFromFile = function(filePath, cb) {
- 
-  var per = per || 100;
 
   gm(filePath)
     .options({imageMagick: true})
-    .size(function(err, size){
+    .identify(function(err, fileData){
       if (err) { 
         cb(err)
       }
       else {
-
         cb(null, new PaintImage({
-          width: size.width,
-          height: size.height,
-          sizeName: '100',
-          name: 'xxx.jpg'
+          width: fileData.size.width,
+          height: fileData.size.height,
+          name: path.basename(fileData.path)
         }));
       }
   });
   
 };
 
-paintImageSchema.methods.createFileImageFromFile = function(filePath, per, cb) {
+/*
+ * Given an image file path 
+ * this creates a copy of the img
+ * and resize it according with the per parameter
+ * and write it on disk
+ *
+ * default toDir value is fromFile - dir
+ */
 
-  var fileImage = gm(filePath);
-  fileImage.options({imageMagick: true})
+paintImageSchema.statics.createFileImageFromFile = function(fromFile, toDir, per, cb) {
+
+  var self = this;
+  var file = gm(fromFile);
+  file.options({imageMagick: true})
     .size(function(err, size){
       if (err) { 
         cb(err)
@@ -74,9 +75,21 @@ paintImageSchema.methods.createFileImageFromFile = function(filePath, per, cb) {
       else {
         var width = Math.round(size.width * per / 100);
         var height = Math.round(size.height * per / 100);
-
-        fileImage.resize(width, height)
-          .write()
+        
+        if ( !fs.existsSync(toDir) ) {
+            fs.mkdirSync(toDir);
+        }
+        var toFile = path.join(toDir, 'yyyy.jpg');
+        file.resize(width, height)
+          .write(toFile, function(err) {
+            if ( err ) {
+              console.log(err);
+              cb(err);
+            }
+            else {
+              cb(null, toFile);
+            }
+          })
       }
   });
 
