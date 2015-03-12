@@ -1,36 +1,15 @@
 var mongoose = require('mongoose');
 var gm = require('gm');
 var Category = require('./category');
+var PaintImage = require('./paintImage')
 var path = require('path');
 var fs = require('fs');
 
 
 var Schema = mongoose.Schema;
 
-var paintImageSchema = new Schema({
-
-  name: {
-    type: String,
-    required: true
-  },
-
-  width: {
-    type: Number,
-    required: true
-  },
-
-  height: {
-    type: Number,
-    required: true
-  },
-
-  sizeName: {
-    type: String,
-    required: true
-  }
 
 
-});
 
 var paintSchema = new Schema({
  
@@ -58,7 +37,10 @@ var paintSchema = new Schema({
     ref: 'Category'
   },
 
-  imageSet: [paintImageSchema]
+  imageSet: {
+    coll: [PaintImage],
+    imageDir: '/asdasd/'
+  }
 
 });
 
@@ -67,6 +49,17 @@ paintSchema.virtual('imageCanonicalPath').get(function() {
   return path.join(this.imagesPath, this.imageCanonicalName);
 
 });
+
+
+/*
+ * Paint.createPaint (paintData) -> paint
+ * PaintImage.createImageCanonical(paint) -> paintImage
+ *   
+ *   PaintImage.createImage() -> paintImage
+ * paint.addImage(paintImage)
+ * paint.save();
+ *
+ */
 
 paintSchema.statics.createPaint = function(paintData) {
   var paint = new Paint(paintData);
@@ -83,7 +76,6 @@ paintSchema.statics.createPaint = function(paintData) {
 paintSchema.methods.createImageCanonical = function(paint, cb) {
   gm(paint.imageCanonicalPath).size(function(err, size) {
     if ( err ) {
-      console.log(err.code);
       cb('err');
     }
     else {
@@ -100,7 +92,7 @@ paintSchema.methods.createImageCanonical = function(paint, cb) {
 paintSchema.methods.createImage = function(per, cb) {
   var self = this;
   //var baseDir = 'public/images/';
-  return gm(imagePath);
+  //return gm(imagePath);
   var img = gm(self.imagesPath + self.title + '.jpg')
     img.options({imageMagick: true})
     .size(function(err, size) {
