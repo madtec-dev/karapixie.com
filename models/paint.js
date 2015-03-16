@@ -63,7 +63,7 @@ paintSchema.statics.createPaint = function(imagePath, paintData, cb) {
           cb(err)
         } 
         else {
-          Paint.findOrCreateCategory(paintData.category, function(err, category) { 
+          Category.findOrCreate(paintData.category, function(err, category) { 
             if ( err ) {
               cb(err)
             }
@@ -81,22 +81,9 @@ paintSchema.statics.createPaint = function(imagePath, paintData, cb) {
 }
 
 
-paintSchema.statics.findOrCreateCategory = function(categoryName, cb) {
+paintSchema.statics.createPaintImage = function(srcFilename, dstDir, per, cb) {
 
-  Category.findOrCreate(categoryName, function(err, category) {
-    if ( err ) {
-      cb(err);
-    }
-    else {
-      cb(null, category);
-    }
-  });
-
-}
-
-paintSchema.statics.createPaintImage = function(fromFile, toDir, per, cb) {
-
-  PaintImage.createFileImageFromFile(fromFile, toDir, per, function(err, toFile) {
+  PaintImage.createFileImageFromFile(srcFilename, dstDir, per, function(err, toFile) {
     if ( err ) {
       cb(err);
     }
@@ -113,12 +100,12 @@ paintSchema.statics.createPaintImage = function(fromFile, toDir, per, cb) {
   });
 };
 
-paintSchema.statics.createPaintImages = function(fromFile, toDir, cb) {
+paintSchema.statics.createPaintImages = function(srcFilename, dstDir, cb) {
 
   var sizes = Paint.getSizes();
   var paintImages = [];
   for ( var i = 0; i < sizes.length; i++ ) {
-    Paint.createPaintImage(fromFile, toDir, sizes[i], function(err, paintImage) {
+    Paint.createPaintImage(srcFilename, dstDir, sizes[i], function(err, paintImage) {
       if (err) {
         cb(err)
       }
@@ -144,24 +131,31 @@ paintSchema.statics.getSizes = function() {
  * req.files
  */
 
-paintSchema.statics.updatePaint = function(imagePath, paintData, cb) {
+paintSchema.statics.updatePaint = function(filename, paintData, cb) {
 
-  var paintData = paintData || imagePath;
+  if ( arguments.length === 2 ) {
+    var paintData = arguments[0];
+    var cb = arguments[1];
+    
+  }
 
-  Paint.findById(paintData._id, function(err, paint) {
-    if (err) {
-      cb(err)
-    } 
-    else {
-      if ( imagePath ) {
+  Category.findOrCreate(paintData.category, function(err, category) {
+    if ( err ) return cb(err); 
+    Paint.findById(paintData._id, function(err, paint) {
+      if (err) return cb(err);
+      
+      if ( filename ) {
         //Paint.createPaintImages(
         //  imagePath, path.join(paint.imagesDir, paintData.title))    
-      }
-      paint.update(paintData);  
+        }
       
-    }
+      paintData.category = category._id;
+      paint.update(paintData, function(err, paint) {
+        if ( err ) return cb(err);
+        cb(null, paint);
+      });  
+    });
   });
-
 };
 
 

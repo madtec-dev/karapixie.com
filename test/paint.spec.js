@@ -47,4 +47,24 @@ describe('Paint', function() {
     
     });
   })
+
+  it('should update a paint with no new image', function(done) {
+    Paint.createPaint('test/square.jpg', paintData, function(err, paint) {
+      paint.save(done);
+      Paint.updatePaint({
+        _id: paint._id,
+        title: 'wide',
+        imagesDir: 'newDir',
+        category: 'charcoal'
+      }, function(err, paint){
+        expect(paint.title).to.equal('wide');
+        expect(paint.imagesDir).to.equal('newDir');
+        done();
+        Category.findById(paint.category, function(err, category) {
+          expect(category.name).to.equal('charcoal');
+          done();
+        })
+      })
+    });
+  });
 })
