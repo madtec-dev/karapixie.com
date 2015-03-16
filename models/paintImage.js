@@ -3,6 +3,7 @@ var gm = require('gm');
 var Category = require('./category');
 var path = require('path');
 var fs = require('fs');
+var uuid = require('node-uuid');
 
 
 var Schema = mongoose.Schema;
@@ -65,7 +66,6 @@ paintImageSchema.statics.createPaintImageFromFile = function(filePath, cb) {
 
 paintImageSchema.statics.createFileImageFromFile = function(fromFile, toDir, per, cb) {
 
-  var self = this;
   var file = gm(fromFile);
   file.options({imageMagick: true})
     .size(function(err, size){
@@ -79,7 +79,9 @@ paintImageSchema.statics.createFileImageFromFile = function(fromFile, toDir, per
         if ( !fs.existsSync(toDir) ) {
             fs.mkdirSync(toDir);
         }
-        var toFile = path.join(toDir, 'yyyy.jpg');
+        var toFile = path.join(toDir, uuid.v4());
+        toFile += '.jpg'
+      
         file.resize(width, height)
           .write(toFile, function(err) {
             if ( err ) {
