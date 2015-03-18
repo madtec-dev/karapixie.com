@@ -7,20 +7,19 @@ var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 var mongoose = require('mongoose');
 
+var dbConnection = require('./db');
+var cfg = require('./config');
 var routes = require('./routes/index');
 var users = require('./routes/users');
 
 // db setup
-mongoose.connect('mongodb://localhost:27017/karapixie');
-var conn = mongoose.connection;
 
-conn.on('error', console.error.bind(console, 'connection error:'));
-conn.once('open', function callback() {
-  console.log('Connected to DB');
-})
+
 
 var app = express();
 
+var conn = dbConnection(cfg);
+app.set('conn', conn);
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.engine('handlebars', exphbs({defaultLayout: 'main'}));

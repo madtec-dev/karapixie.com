@@ -7,7 +7,7 @@ var PaintImage = require('../models/paintImage');
 
 describe('PaintImage', function() {
 
-  it('should create a paintImage', function(done) {
+  it.skip('should create a paintImage', function(done) {
   
     PaintImage.createPaintImageFromFile('test/square.jpg', function(err, paintImage) {
       expect(paintImage.width).to.equal(2679);
@@ -19,7 +19,7 @@ describe('PaintImage', function() {
 
   });
 
-  it('should create a fileimage from file and return new path', function(done){
+  it.skip('should create a fileimage from file and return new path', function(done){
     PaintImage.createFileImageFromFile(
       'test/square.jpg', 
       'test/square/', 

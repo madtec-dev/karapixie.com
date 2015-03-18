@@ -4,12 +4,22 @@ var mongoose = require('mongoose');
 var chai = require('chai');
 var expect = chai.expect;
 var sinon = require('sinon');
+var request = require('supertest');
+
+var cfg = require('../config');
+var dbConnection = require('../db');
+cfg.dbName = 'karapixie-test';
+
+var app = require('../app');
+var conn;
+conn = app.get('conn');
 
 var Paint = require('../models/paint');
 
+
 describe('Paint', function() {
   
-  this.timeout(5000);
+  this.timeout(10000);
   
   var paintData = {
       title: 'square'
@@ -17,20 +27,38 @@ describe('Paint', function() {
     , category: 'oil'
   };
 
-
-  before(function() {
- 
-    mongoose.connect('mongodb://localhost:27017/karapixie');
-    this.conn = mongoose.connection;
-
-
+  before(function(done) {
+    if ( !conn ) {
+      console.log('opening');
+      conn = dbConnection(cfg);
+      done();
+    }
+    done();
   });
 
-  after(function() {
-    this.conn.close();
+  after(function(done) {
+    conn.close(done);
   });
 
-  it('should create a paint', function(done){
+  afterEach(function(done) {
+    conn.db.dropDatabase(done);
+  });
+
+  it('should post a paint', function(done){
+    request(app)
+    .post('/api/paints')
+    .send({name: 'square'})
+    .expect('Content-Type', /json/)
+    .expect(200)
+    .end(function(err, res) {
+      expect(err).to.be.null;
+      expect(res.body.name).to.equal('square');
+      done();
+    })
+    
+  });
+
+  it.skip('should create a paint', function(done){
     Paint.createPaint('test/square.jpg', paintData, function(err, paint){
       expect(err).to.be.null;
       expect(paint.title).to.equal('square');
@@ -41,14 +69,14 @@ describe('Paint', function() {
 
   });
 
-  it('should save a paint', function(done) {
+  it.skip('should save a paint', function(done) {
     Paint.createPaint('test/square.jpg', paintData, function(err, paint) {
       paint.save(done);
     
     });
   })
 
-  it('should update a paint with no new image', function(done) {
+  it.skip('should update a paint with no new image', function(done) {
     Paint.createPaint('test/square.jpg', paintData, function(err, paint) {
       paint.save(done);
       Paint.updatePaint({

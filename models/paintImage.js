@@ -5,7 +5,6 @@ var path = require('path');
 var fs = require('fs');
 var uuid = require('node-uuid');
 
-
 var Schema = mongoose.Schema;
 
 var paintImageSchema = new Schema({
@@ -38,6 +37,9 @@ var paintImageSchema = new Schema({
 
 paintImageSchema.statics.createPaintImageFromFile = function(filePath, cb) {
 
+  /*fs.readFileAsync(filePath).then(function(val) {
+    console.log(val);
+  })*/
   gm(filePath)
     .options({imageMagick: true})
     .identify(function(err, fileData){
@@ -65,7 +67,6 @@ paintImageSchema.statics.createPaintImageFromFile = function(filePath, cb) {
  */
 
 paintImageSchema.statics.createFileImageFromFile = function(fromFile, toDir, per, cb) {
-
   var file = gm(fromFile);
   file.options({imageMagick: true})
     .size(function(err, size){

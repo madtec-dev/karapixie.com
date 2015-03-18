@@ -5,28 +5,15 @@ var PaintImage = require('./paintImage')
 var path = require('path');
 var fs = require('fs');
 
-
 var Schema = mongoose.Schema;
-
-
 
 
 var paintSchema = new Schema({
  
-  /*
-   * rename this to name
-   */ 
-  title: {
+  name: {
     type: String,
     required: true
   },
-
-  imagesDir: {
-    type: String,
-    required: true,
-    default: 'public/images'
-  },
-  
   category: {
     type: Schema.Types.ObjectId,
     ref: 'Category'
@@ -53,7 +40,7 @@ var paintSchema = new Schema({
  * 3. Create a Paint obj
  * 4. Add paintImage to imageSet
  */
-paintSchema.statics.createPaint = function(imagePath, paintData, cb) {
+/*paintSchema.statics.createPaint = function(imagePath, paintData, cb) {
  
   Paint.createPaintImages(
       imagePath
@@ -131,7 +118,7 @@ paintSchema.statics.getSizes = function() {
  * req.files
  */
 
-paintSchema.statics.updatePaint = function(filename, paintData, cb) {
+/*paintSchema.statics.updatePaint = function(filename, paintData, cb) {
 
   if ( arguments.length === 2 ) {
     var paintData = arguments[0];
@@ -158,7 +145,7 @@ paintSchema.statics.updatePaint = function(filename, paintData, cb) {
   });
 };
 
-
+*/
 var Paint = mongoose.model('Paint', paintSchema);
 
 module.exports = Paint;
