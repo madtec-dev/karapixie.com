@@ -1,14 +1,55 @@
+/*
+ * TODO
+ *
+ * create heleper function that creates the dbURI string
+ * buildDbURI.call(this);
+ * 
+ * */
+module.exports = function(dbURI) {
 var mongoose = require('mongoose');
+//var dbURI = 'mongodb://localhost:27017/karapixie-test';
+mongoose.connect(dbURI);
 
-function dbConnection(cfg) {
-  var conn = mongoose.connect(cfg.hostname + ':' + cfg.port + '/' + cfg.dbName);
-  conn = mongoose.connection;
+var db = mongoose.connection;
 
-  conn.on('error', console.error.bind(console, 'connection error:'));
-  conn.once('open', function callback() {
-    console.log('Connected to DB -> ' + cfg.dbName);
+db.on('connecting', function() {
+  console.log('Mongoose connecting to ' + dbURI);
+});
+
+db.on('connected', function() {
+  console.log('Mongoose connected to ' + dbURI);
+});
+
+db.on('open', function() {
+  console.log('Mongoose opened connection to ' + dbURI );
+});
+
+db.on('disconnecting', function() {
+  console.log('Mongoose disconnecting from ' + dbURI);
+});
+
+db.on('disconnected', function() {
+  console.log('Mongoose disconnected from ' + dbURI);
+});
+
+db.on('close', function() {
+  console.log('Mongoose closed connection from ' + dbURI);
+});
+
+db.on('reconnected', function() {
+  console.log('Mongoose reconnecting to ' + dbURI);
+});
+
+db.on('error', function(err) {
+  console.log('Mongoose connection error: ' + err);
+});
+
+process.on('SIGINT', function() {
+  db.close(function() {
+    console.log('Mongoose disconnected through app termination');
+    process.exit(0);
+
   })
-  return conn;
+});
+return db;
 }
-
-module.exports = dbConnection;

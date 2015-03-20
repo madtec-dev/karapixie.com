@@ -5,35 +5,19 @@ var chai = require('chai');
 var expect = chai.expect;
 var sinon = require('sinon');
 var request = require('supertest');
-
-var cfg = require('../config');
-var dbConnection = require('../db');
-cfg.dbName = 'karapixie-test';
+var db = require('../db');
 
 var app = require('../app');
-var conn;
-conn = app.get('conn');
 
 var Paint = require('../models/paint');
 
 
 describe('Paint', function() {
+  this.timeout(5000);
   
-  this.timeout(10000);
-  
-  var paintData = {
-      title: 'square'
-    , imagesDir: 'test'
-    , category: 'oil'
-  };
-
-  before(function(done) {
-    if ( !conn ) {
-      console.log('opening');
-      conn = dbConnection(cfg);
-      done();
-    }
-    done();
+  var conn;
+  before(function() {
+    conn = db('mongodb://localhost:27017/karapixie-test');
   });
 
   after(function(done) {
