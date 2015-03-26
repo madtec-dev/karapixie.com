@@ -68,16 +68,76 @@ router.get('/', function(req, res) {
   res.render('index');
 });
 
+/**********************************************
+ * API Paints
+ *********************************************/
+
+router.get('/api/paints', function(req, res) { 
+  Paint.find(function(err, paints) {
+    if ( err ) res.send(err);
+    res.json(paints);
+  });
+});
+
 router.post('/api/paints', function(req, res) {
+  
   var paint = new Paint({
       name: req.body.name
   });
 
   paint.save(function(err, paint) {
     if ( err ) return res.send(err);
-    res.json(paint);
-  })
-})
+    
+    paint.createImagesDir(function(err, dir) {
+      if ( err ) return console.log(err);
+      
+      paint.createImageFile('public/images/square.jpg', dir, function(err, path) {
+        if ( err ) return console.log(err);
+        console.log('created: ' + path);
+      });
+    });
 
+    res
+      .set({
+        'location': '/api/paints/' + paint._id.toString() + '/status',
+      })
+      .status(202)
+      .json(paint);
+  });
+
+});
+
+/**********************************************
+ * API Paint status
+ *********************************************/
+
+router.get('/api/paints/:paintId/status', function(req, res) {
+
+});
+
+/**********************************************
+ * API Paint
+ *********************************************/
+
+router.get('/api/paints/:paintId', function(req, res) {
+  Paint.findById(req.params.paintId, function(err, paint) {
+    if ( err ) res.send(err);
+    res.json(paint); 
+  });
+});
+
+router.patch('/api/paints/:paintId', function(req, res) {
+  Paint.findByIdAndUpdate(req.params.paintId, {name: req.body.name}, function(err, paint) {
+    if ( err ) res.send(err);
+    res.json(paint); 
+  });
+});
+
+router.delete('/api/paints/:paintId', function(req, res) {
+  Paint.findByIdAndRemove(req.params.paintId, function(err, paint) {
+    if ( err ) res.send(err);
+    res.json(paint); 
+  });
+});
 
 module.exports = router;

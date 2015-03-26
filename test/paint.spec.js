@@ -5,7 +5,6 @@ var chai = require('chai');
 var expect = chai.expect;
 var sinon = require('sinon');
 var request = require('supertest');
-var db = require('../db');
 
 var app = require('../app');
 
@@ -13,70 +12,99 @@ var Paint = require('../models/paint');
 
 
 describe('Paint', function() {
-  this.timeout(5000);
-  
-  var conn;
-  before(function() {
-    conn = db('mongodb://localhost:27017/karapixie-test');
+ 
+  before(function(done) {
+    mongoose.connect('mongodb://localhost:27017/karapixie-test', done);
   });
 
   after(function(done) {
-    conn.close(done);
+    console.log('disconnected');
+    mongoose.connection.close(done);
   });
-
+  
   afterEach(function(done) {
-    conn.db.dropDatabase(done);
+    console.log('dropped');
+    mongoose.connection.db.dropDatabase(done);
   });
+  
+  describe('GET /api/paints/:paintId', function() {
 
-  it('should post a paint', function(done){
-    request(app)
-    .post('/api/paints')
-    .send({name: 'square'})
-    .expect('Content-Type', /json/)
-    .expect(200)
-    .end(function(err, res) {
-      expect(err).to.be.null;
-      expect(res.body.name).to.equal('square');
-      done();
-    })
-    
-  });
-
-  it.skip('should create a paint', function(done){
-    Paint.createPaint('test/square.jpg', paintData, function(err, paint){
-      expect(err).to.be.null;
-      expect(paint.title).to.equal('square');
-      expect(paint.imagesDir).to.equal('test');
-      //expect(paint.imageCanonicalName).to.equal('test/square.jpg');
-      done();
-    })
-
-  });
-
-  it.skip('should save a paint', function(done) {
-    Paint.createPaint('test/square.jpg', paintData, function(err, paint) {
-      paint.save(done);
-    
+    var _id = mongoose.Types.ObjectId.createPk();
+    before(function(done) {
+      Paint.create({
+        _id: _id,
+        name: 'paint-1'
+      }, done);
     });
-  })
 
-  it.skip('should update a paint with no new image', function(done) {
-    Paint.createPaint('test/square.jpg', paintData, function(err, paint) {
-      paint.save(done);
-      Paint.updatePaint({
-        _id: paint._id,
-        title: 'wide',
-        imagesDir: 'newDir',
-        category: 'charcoal'
-      }, function(err, paint){
-        expect(paint.title).to.equal('wide');
-        expect(paint.imagesDir).to.equal('newDir');
-        done();
-        Category.findById(paint.category, function(err, category) {
-          expect(category.name).to.equal('charcoal');
+    it('should get a paint by id', function(done) {
+      request(app)
+        .get('/api/paints/' + _id.toString())
+        .expect('Content-Type', /json/)
+        .expect(200)
+        .end(function(err, res) {
+          expect(err).to.be.null;
+          expect(res.body.name).to.equal('paint-1');
           done();
-        })
-      })
+        });
+    }); 
+
+  });
+
+  describe('PATCH /api/paints/:paintId', function() {
+    
+    var _id = mongoose.Types.ObjectId.createPk();
+    beforeEach(function(done) {     
+      Paint.create({
+        _id: _id,
+        name: 'paint-1'
+      }, done);
+    });
+    
+    it('should update a paint', function(done) {
+      request(app)
+      .patch('/api/paints/' + _id.toString())
+      .send({name: 'updated'})
+      .expect('Content-Type', /json/)
+      .expect(200)
+      .end(function(err, res) {
+        expect(err).to.be.null;
+        expect(res.body.name).to.equal('updated');
+        done();
+      });     
+    });
+
+  });
+
+  describe('DELETE /api/paints/:paintId', function() {
+  
+    var _id = mongoose.Types.ObjectId.createPk();
+    beforeEach(function(done) {     
+      Paint.create({
+        _id: _id,
+        name: 'paint-1'
+      }, done);
+    });
+    
+    it('should delete a paint', function(done) {
+      request(app)
+      .delete('/api/paints/' + _id.toString())
+      .expect('Content-Type', /json/)
+      .expect(200)
+      .end(function(err, res) {
+        expect(err).to.be.null;
+        expect(res.body.name).to.equal('paint-1');
+      });     
+      request(app)
+      .get('/api/paints/' + _id.toString())
+      .expect('Content-Type', /json/)
+      .expect(200)
+      .end(function(err, res) {
+        expect(err).to.be.null;
+        expect(res.body).to.be.empty;
+        done();
+      }); 
     });
   });
-})
+
+});

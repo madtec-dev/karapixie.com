@@ -3,7 +3,7 @@ var gm = require('gm');
 var Category = require('./category');
 var PaintImage = require('./paintImage')
 var path = require('path');
-var fs = require('fs');
+var fs = require('fs-extra');
 
 var Schema = mongoose.Schema;
 
@@ -14,6 +14,7 @@ var paintSchema = new Schema({
     type: String,
     required: true
   },
+
   category: {
     type: Schema.Types.ObjectId,
     ref: 'Category'
@@ -22,6 +23,7 @@ var paintSchema = new Schema({
   imageSet: [PaintImage.schema]
 
 });
+
 
 /*
  * Paint.createPaint (paintData) -> paint
@@ -66,9 +68,33 @@ var paintSchema = new Schema({
         }
       }); 
 }
+*/
 
+paintSchema.methods.createImagesDir = function(cb) {
 
-paintSchema.statics.createPaintImage = function(srcFilename, dstDir, per, cb) {
+  var paintdir = path.join(Paint.basedir, this.name);
+  
+  fs.ensureDir(paintdir, function(err) {
+    if ( err ) return cb(err);
+    cb(null, paintdir);
+  });  
+
+};
+
+paintSchema.methods.createImageFile = function(srcfile, dstdir, cb) {
+
+  var dstfile = path.join(dstdir, 'copy.jpg');
+  console.log(srcfile);
+  gm(srcfile)  
+    .options({imageMagick: true})
+    .write(dstfile, function(err) {
+      if ( err ) return cb(err);
+      cb(null, dstfile);
+    });
+};
+
+/*
+paintSchema.methods.createImage = function(srcFilename, dstDir, per, cb) {
 
   PaintImage.createFileImageFromFile(srcFilename, dstDir, per, function(err, toFile) {
     if ( err ) {
@@ -86,7 +112,9 @@ paintSchema.statics.createPaintImage = function(srcFilename, dstDir, per, cb) {
     }
   });
 };
+*/
 
+/*
 paintSchema.statics.createPaintImages = function(srcFilename, dstDir, cb) {
 
   var sizes = Paint.getSizes();
@@ -147,5 +175,5 @@ paintSchema.statics.getSizes = function() {
 
 */
 var Paint = mongoose.model('Paint', paintSchema);
-
+Paint.basedir = 'public/images/paints';
 module.exports = Paint;

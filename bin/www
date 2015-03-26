@@ -2,7 +2,6 @@
 var debug = require('debug')('karapixie.com');
 var app = require('../app');
 var db = require('../db');
-db('mongodb://localhost:27017/karapixie')
 
 app.set('port', process.env.PORT || 3000);
 

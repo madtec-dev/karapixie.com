@@ -1,5 +1,5 @@
 var mongoose = require('mongoose');
-mongoose.connect('mongodb://localhost:27017/karapixie');
+mongoose.connect('mongodb://localhost:27017/karapixie-test');
 module.exports = mongoose.connection;
 /*
 db.on('connecting', function() {
