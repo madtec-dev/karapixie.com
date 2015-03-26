@@ -3,7 +3,6 @@ var gm = require('gm');
 var Category = require('./category');
 var path = require('path');
 var fs = require('fs');
-var uuid = require('node-uuid');
 
 var Schema = mongoose.Schema;
 

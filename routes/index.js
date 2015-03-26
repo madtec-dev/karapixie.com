@@ -63,6 +63,9 @@ var path = require('path');
 var mongoose = require('mongoose');
 var gm = require('gm');
 var Paint = require('../models/paint');
+var PaintImage = require('../models/paintImage');
+var fs = require('fs-extra');
+var uuid = require('node-uuid');
 
 router.get('/', function(req, res) {
   res.render('index');
@@ -84,25 +87,59 @@ router.post('/api/paints', function(req, res) {
   var paint = new Paint({
       name: req.body.name
   });
+  
+  var paintImageName = uuid.v4() + '.jpg';
+  
+  paint.createImagesDir(function(err, dir) {
+    if ( err ) res.json(err);
+    var filepath = path.join(dir, paintImageName);
+    fs.copy('public/images/square.jpg', filepath, function(err) {
+      if ( err ) res.json(err);
+      gm(filepath)
+        .options({imageMagick: true})
+        .size(function(err, size) {
+          var paintImage = new PaintImage({
+            name: paintImageName,
+            width: size.width,
+            height: size.height
+          });
+          paint.imageSet.addToSet(paintImage);
+          paint.save(function(err, paint) {
+            if ( err ) res.json(err);
+            
+            paint.createImageVariants(filepath, function(err, filepaths) {
+              if ( err ) return console.log(err);
+              for ( var i = 0; i < filepaths.length; i++ ) {
+                var filepath = filepaths[i];
+                gm(filepaths[i])
+                  .options({imageMagick: true})
+                  .size(function(err, size) {
+                    if ( err ) return console.log(err);
 
-  paint.save(function(err, paint) {
-    if ( err ) return res.send(err);
-    
-    paint.createImagesDir(function(err, dir) {
-      if ( err ) return console.log(err);
-      
-      paint.createImageFile('public/images/square.jpg', dir, function(err, path) {
-        if ( err ) return console.log(err);
-        console.log('created: ' + path);
-      });
+                    var filename = path.basename(filepath);
+                    paint.imageSet.addToSet({
+                      name: filename,
+                      width: size.width,
+                      height: size.height
+                    });
+                    paint.save(function(err, paint) {
+                      if ( err ) return console.log(err);
+                    });
+                  });
+              }
+            });
+            res
+              .set({
+                'location': '/api/paints/' + paint._id.toString() + '/status',
+              })
+              .status(202)
+              .json(paint);
+          });
+
+        });
+        
     });
 
-    res
-      .set({
-        'location': '/api/paints/' + paint._id.toString() + '/status',
-      })
-      .status(202)
-      .json(paint);
   });
 
 });
