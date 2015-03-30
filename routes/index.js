@@ -67,6 +67,8 @@ var PaintImage = require('../models/paintImage');
 var fs = require('fs-extra');
 var uuid = require('node-uuid');
 
+
+
 router.get('/', function(req, res) {
   res.render('index');
 });
@@ -82,16 +84,21 @@ router.get('/api/paints', function(req, res) {
   });
 });
 
+var status;
+
 router.post('/api/paints', function(req, res) {
   
   var paint = new Paint({
       name: req.body.name
   });
-  
+ 
+  status = '';
+
   var paintImageName = uuid.v4() + '.jpg';
   
   paint.createImagesDir(function(err, dir) {
     if ( err ) res.json(err);
+
     var filepath = path.join(dir, paintImageName);
     fs.copy('public/images/square.jpg', filepath, function(err) {
       if ( err ) res.json(err);
@@ -106,15 +113,17 @@ router.post('/api/paints', function(req, res) {
           paint.imageSet.addToSet(paintImage);
           paint.save(function(err, paint) {
             if ( err ) res.json(err);
-            
+           
+            status = 'processing';
+
             paint.createImageVariants(filepath, function(err, filepaths) {
-              if ( err ) return console.log(err);
+              if ( err ) return status = 'gone';
               for ( var i = 0; i < filepaths.length; i++ ) {
                 var filepath = filepaths[i];
                 gm(filepaths[i])
                   .options({imageMagick: true})
                   .size(function(err, size) {
-                    if ( err ) return console.log(err);
+                    if ( err ) return status = 'gone';
 
                     var filename = path.basename(filepath);
                     paint.imageSet.addToSet({
@@ -123,7 +132,8 @@ router.post('/api/paints', function(req, res) {
                       height: size.height
                     });
                     paint.save(function(err, paint) {
-                      if ( err ) return console.log(err);
+                      if ( err ) return status = 'gone';
+                      status = 'created';
                     });
                   });
               }
@@ -149,6 +159,28 @@ router.post('/api/paints', function(req, res) {
  *********************************************/
 
 router.get('/api/paints/:paintId/status', function(req, res) {
+
+  Paint.findById(req.params.paintId, function(err, paint) {
+    
+    if ( err ) return console.log(err);
+
+    if (status === 'created') {
+      res
+        .set({
+          'location': '/api/paints/' + paint._id.toString() 
+        })
+        .status(201)
+        .json(paint);
+    }
+    else if (status === 'processing') {
+        res.status(200);
+    }
+    else {
+      res.status(410);
+    }
+    
+    
+  });
 
 });
 

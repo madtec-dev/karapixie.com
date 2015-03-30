@@ -34,11 +34,12 @@ var paintImageSchema = new Schema({
  *
  */
 
+/*
 paintImageSchema.statics.createPaintImageFromFile = function(filePath, cb) {
 
-  /*fs.readFileAsync(filePath).then(function(val) {
-    console.log(val);
-  })*/
+  //fs.readFileAsync(filePath).then(function(val) {
+  //  console.log(val);
+  //})
   gm(filePath)
     .options({imageMagick: true})
     .identify(function(err, fileData){
@@ -55,6 +56,7 @@ paintImageSchema.statics.createPaintImageFromFile = function(filePath, cb) {
   });
   
 };
+*/
 
 /*
  * Given an image file path 
@@ -64,7 +66,7 @@ paintImageSchema.statics.createPaintImageFromFile = function(filePath, cb) {
  *
  * default toDir value is fromFile - dir
  */
-
+/*
 paintImageSchema.statics.createFileImageFromFile = function(fromFile, toDir, per, cb) {
   var file = gm(fromFile);
   file.options({imageMagick: true})
@@ -96,7 +98,7 @@ paintImageSchema.statics.createFileImageFromFile = function(fromFile, toDir, per
   });
 
 };
-
+*/
 var PaintImage = mongoose.model('PaintImage', paintImageSchema);
 
 module.exports = PaintImage;

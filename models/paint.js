@@ -1,11 +1,88 @@
 var mongoose = require('mongoose');
 var gm = require('gm');
 var Category = require('./category');
-var PaintImage = require('./paintImage')
+var PaintImage = require('./paintImage');
 var path = require('path');
 var fs = require('fs-extra');
 var uuid = require('node-uuid');
 var PaintImage = require('./paintImage');
+
+var Paint = function (options) {
+
+  var _name = options.name || '';
+
+  var _imageSet = [];
+
+  var _schema = new mongoose.Schema({
+   
+    name: {
+      type: String,
+      required: true
+    },
+    /*
+    category: {
+      type: Schema.Types.ObjectId,
+      ref: 'Category'
+    },
+    */
+    imageSet: [PaintImage.schema]
+
+  });
+
+  var _model = mongoose.model('PaintModel', _schema);
+
+};
+
+Paint.prototype.getName = function() {
+  return this._model.name;
+};
+
+Paint.prototype.setName = function(name) {
+  this._model.name = name;
+};
+
+Paint.prototype.save = function(cb) {
+
+  this._model.save(function(err, paint) {
+    if ( err ) return cb(err);
+    this._name = paint.name;
+    this._imageSet = paint.imageSet;
+    cb(null, this); 
+  });
+
+};
+
+var ImageFile = function(options) {
+
+  var filename = options.filename || '';
+
+  var filepath = options.filepath || '';
+
+};
+
+/*
+ * copy an image from srcfile to dstfile, returns
+ * the copied file.
+ *
+ * whe dont need srcfile, is filepath property
+ */
+ImageFile.prototype.copy = function(srcfile, dstfile, cb) {
+
+  fs.copy(srcfile, dstfile, function(err) {
+    if ( err ) return cb(err); 
+    cb(null, this);
+  });
+
+};
+
+/*
+ * returns an imageFile object with the new size;
+ */
+ImageFile.prototype.resize = function() {
+  gm(this.filepath)
+    .options({imageMagick: true})
+};
+
 
 var Schema = mongoose.Schema;
 
@@ -100,6 +177,7 @@ paintSchema.methods.createImageFile = function(srcfile, per, cb) {
 paintSchema.methods.createImageVariants = function(srcfile, cb) {
   var filepaths = [];
   for ( var i = 0; i < Paint.sizes.length; i++ ) {
+
     this.createImageFile(srcfile, Paint.sizes[i], function(err, path) {
       if ( err ) return cb(err);
       
@@ -195,4 +273,5 @@ paintSchema.statics.getSizes = function() {
 var Paint = mongoose.model('Paint', paintSchema);
 Paint.basedir = 'public/images/paints';
 Paint.sizes = [80, 60];
+
 module.exports = Paint;
