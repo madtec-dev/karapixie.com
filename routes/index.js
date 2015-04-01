@@ -66,8 +66,12 @@ var Paint = require('../models/paint');
 var PaintImage = require('../models/paintImage');
 var fs = require('fs-extra');
 var uuid = require('node-uuid');
+var Promise = require('bluebird');
 
 
+Promise.promisifyAll(Paint);
+Promise.promisifyAll(Paint.prototype);
+Promise.promisifyAll(fs);
 
 router.get('/', function(req, res) {
   res.render('index');
@@ -84,16 +88,45 @@ router.get('/api/paints', function(req, res) {
   });
 });
 
-var status;
+//var status;
 
 router.post('/api/paints', function(req, res) {
   
-  var paint = new Paint({
-      name: req.body.name
-  });
- 
-  status = '';
+  // this is the path for req.files.path
+  var srcpath = 'public/images/lisa.jpg';
+  var dstpath = Paint.basedir + req.body.name + '/' + uuid.v4() + '.jpg';
+  
+  // move the uploaded image from uploads to dst dir
+  fs.copyAsync(srcpath, dstpath).then(function() {
+    return Promise.promisifyAll(gm(dstpath))
+      .options({imageMagick: true})
+      .sizeAsync();
+  }).then(function(size) {
+    var paint = new Paint({name: req.body.name});
 
+    var paintImages = [];
+    for ( var i = 0; i < Paint.sizes.length; i++ ) {
+      var paintImage = new PaintImage({
+        name: uuid.v4() + '.jpg',
+        width: Math.round(size.width * Paint.sizes[i] / 100),
+        height: Math.round(size.height * Paint.sizes[i] / 100)
+      });  
+      paintImages.push(paintImage);
+    } 
+
+    paint.imageVariants = paintImages;
+    return paint;
+  }).then(function(paint) {
+    paint.saveAsync(); 
+  }).then(function() { 
+    res.status(202).json();
+  }).catch(function(e) {
+    res.status(400).json(e);
+  });
+
+  //status = '';
+
+   /*
   var paintImageName = uuid.v4() + '.jpg';
   
   paint.createImagesDir(function(err, dir) {
@@ -151,7 +184,7 @@ router.post('/api/paints', function(req, res) {
     });
 
   });
-
+  */
 });
 
 /**********************************************
