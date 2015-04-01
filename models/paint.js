@@ -6,6 +6,7 @@ var path = require('path');
 var fs = require('fs-extra');
 var uuid = require('node-uuid');
 var PaintImage = require('./paintImage');
+var app = require('../app');
 
 var paintSchema = new mongoose.Schema({
  
@@ -23,50 +24,60 @@ var paintSchema = new mongoose.Schema({
 
 });
 
-/*
-paintSchema.methods.createImagesDir = function(cb) {
+paintSchema.virtual('basedir').get(function() {
+  return path.join('public/images/paints', this.name);
+});
 
-  var paintdir = path.join(Paint.basedir, this.name);
-  
-  fs.ensureDir(paintdir, function(err) {
-    if ( err ) return cb(err);
-    cb(null, paintdir);
-  });  
+paintSchema.virtual('status')
+  .get(function() {
+    return this._status;
+  })
+  .set(function(status) {
+    return this._status = status;
+  });
 
-};
+  paintSchema.set('toObject', {
+      getters: true
+  });
 
-paintSchema.methods.createImageFile = function(srcfile, per, cb) {
+paintSchema.methods.createImageFile = function(srcfile, imageVariant, cb) {
   // get the extension of the file
-
-  var dstdir = path.dirname(srcfile);
-  var dstpath = path.join(dstdir, uuid.v4() + '.jpg');
+  var dstpath = path.join(this.basedir, imageVariant.name);
   gm(srcfile)  
     .options({imageMagick: true})
-    .resize(per, '%')
+    .resize(imageVariant.width, imageVariant.height)
     .write(dstpath, function(err) {
       if ( err ) return cb(err);
       cb(null, dstpath);
     });
 };
 
-paintSchema.methods.createImageVariants = function(srcfile, cb) {
-  var filepaths = [];
-  for ( var i = 0; i < Paint.sizes.length; i++ ) {
 
-    this.createImageFile(srcfile, Paint.sizes[i], function(err, path) {
-      if ( err ) return cb(err);
+paintSchema.methods.createImageVariants = function(srcfile, cb) {
+  this.status = 'processing'; 
+  var filepaths = [];
+  var self = this;
+  for ( var i = 0; i < this.imageVariants.length; i++ ) {
+
+    this.createImageFile(srcfile, this.imageVariants[i], function(err, path) {
+      if ( err ) {
+        self.status = 'gone'; 
+        return cb(err);
+      }
       
       filepaths.push(path);
-      if ( filepaths.length === Paint.sizes.length ) {
+      if ( filepaths.length === self.imageVariants.length ) {
+        self.status = 'created'; 
+        console.log(self.status);
         cb(null, filepaths);
       }
     });
   };
 };
-*/
 
 var Paint = mongoose.model('Paint', paintSchema);
-Paint.basedir = 'public/images/paints/';
+// this should be an APP property
+Paint.prototype.imageVariantsStatus;
 Paint.sizes = [80, 60];
 
 

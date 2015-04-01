@@ -57,6 +57,7 @@
  */
 
 var express = require('express');
+//var app = require('../app');
 var router = express.Router();
 var paints = require('../data/paints');
 var path = require('path');
@@ -72,6 +73,8 @@ var Promise = require('bluebird');
 Promise.promisifyAll(Paint);
 Promise.promisifyAll(Paint.prototype);
 Promise.promisifyAll(fs);
+
+
 
 router.get('/', function(req, res) {
   res.render('index');
@@ -93,17 +96,16 @@ router.get('/api/paints', function(req, res) {
 router.post('/api/paints', function(req, res) {
   
   // this is the path for req.files.path
-  var srcpath = 'public/images/lisa.jpg';
-  var dstpath = Paint.basedir + req.body.name + '/' + uuid.v4() + '.jpg';
+  var originalImageSrcPath = 'public/images/lisa.jpg';
+  var originalImageDstPath = req.app.get('paintbasedir') + req.body.name + '/' + uuid.v4() + '.jpg';
   
   // move the uploaded image from uploads to dst dir
-  fs.copyAsync(srcpath, dstpath).then(function() {
-    return Promise.promisifyAll(gm(dstpath))
+  fs.copyAsync(originalImageSrcPath, originalImageDstPath).then(function() {
+    return Promise.promisifyAll(gm(originalImageDstPath))
       .options({imageMagick: true})
       .sizeAsync();
   }).then(function(size) {
     var paint = new Paint({name: req.body.name});
-
     var paintImages = [];
     for ( var i = 0; i < Paint.sizes.length; i++ ) {
       var paintImage = new PaintImage({
@@ -118,73 +120,19 @@ router.post('/api/paints', function(req, res) {
     return paint;
   }).then(function(paint) {
     paint.saveAsync(); 
-  }).then(function() { 
-    res.status(202).json();
+    return paint;
+  }).then(function(paint) { 
+    paint.createImageVariants(originalImageDstPath, function(){});
+    res
+      .set({
+        'location': '/api/paints/' + paint._id.toString() + '/status'
+      })
+      .status(202)
+      .json(paint);
   }).catch(function(e) {
-    res.status(400).json(e);
+    console.error(e);
+       res.status(400).send(e);
   });
-
-  //status = '';
-
-   /*
-  var paintImageName = uuid.v4() + '.jpg';
-  
-  paint.createImagesDir(function(err, dir) {
-    if ( err ) res.json(err);
-
-    var filepath = path.join(dir, paintImageName);
-    fs.copy('public/images/square.jpg', filepath, function(err) {
-      if ( err ) res.json(err);
-      gm(filepath)
-        .options({imageMagick: true})
-        .size(function(err, size) {
-          var paintImage = new PaintImage({
-            name: paintImageName,
-            width: size.width,
-            height: size.height
-          });
-          paint.imageSet.addToSet(paintImage);
-          paint.save(function(err, paint) {
-            if ( err ) res.json(err);
-           
-            status = 'processing';
-
-            paint.createImageVariants(filepath, function(err, filepaths) {
-              if ( err ) return status = 'gone';
-              for ( var i = 0; i < filepaths.length; i++ ) {
-                var filepath = filepaths[i];
-                gm(filepaths[i])
-                  .options({imageMagick: true})
-                  .size(function(err, size) {
-                    if ( err ) return status = 'gone';
-
-                    var filename = path.basename(filepath);
-                    paint.imageSet.addToSet({
-                      name: filename,
-                      width: size.width,
-                      height: size.height
-                    });
-                    paint.save(function(err, paint) {
-                      if ( err ) return status = 'gone';
-                      status = 'created';
-                    });
-                  });
-              }
-            });
-            res
-              .set({
-                'location': '/api/paints/' + paint._id.toString() + '/status',
-              })
-              .status(202)
-              .json(paint);
-          });
-
-        });
-        
-    });
-
-  });
-  */
 });
 
 /**********************************************
@@ -192,27 +140,27 @@ router.post('/api/paints', function(req, res) {
  *********************************************/
 
 router.get('/api/paints/:paintId/status', function(req, res) {
+  Paint.findByIdAsync(req.params.paintId).then(function(paint) {
+    console.log(paint);
+    switch(paint.status) {
+      case 'created':
+        res
+          .set({
+            'location': '/api/paints/' + paint._id.toString() 
+          })
+          .status(201)
+          .json(paint);
+        break;
 
-  Paint.findById(req.params.paintId, function(err, paint) {
-    
-    if ( err ) return console.log(err);
+      case 'gone':
+        res.status(410);
+        break;
 
-    if (status === 'created') {
-      res
-        .set({
-          'location': '/api/paints/' + paint._id.toString() 
-        })
-        .status(201)
-        .json(paint);
-    }
-    else if (status === 'processing') {
+      default:
         res.status(200);
     }
-    else {
-      res.status(410);
-    }
-    
-    
+  }).catch(function(e) {
+    res.status(404).send(e);
   });
 
 });
