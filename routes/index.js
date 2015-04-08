@@ -190,16 +190,21 @@ router.get('/api/paints/:paintId', function(req, res) {
 });
 
 router.patch('/api/paints/:paintId', function(req, res) {
-  Paint.findByIdAndUpdate(req.params.paintId, req.body, function(err, paint) {
-    if ( err ) res.send(err);
-
-    console.log(paint.getImageVariantPaths());
-
-    if ( req.files ) {
+  Paint.findByIdAsync(req.params.paintId)
+  .then(function(paint) {
     
+    if ( !req.files ) {
+      fs.ensureDirAsync(path.join(req.app.get('paintbasedir'), 'trash'))
+      .then(function() {
+        var trashDir = path.join(req.app.get('paintbasedir'), 'trash', paint.name);
+        var oldImagesDir = paint.basedir; 
+        fs.moveAsync(oldImagesDir, trashDir, true)
+      }).then(function() {
+          res.status(200).json(paint); 
+      }).catch(function(e) {
+        res.status(500).send(e);
+      });
     }
-
-    res.json(paint); 
   });
 });
 
