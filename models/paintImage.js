@@ -25,6 +25,28 @@ var paintImageSchema = new Schema({
 
 
 });
+/*
+paintImageSchema.virtual('paint')
+  .get(function() {
+    return this._paint;
+  })
+  .set(function(paint) {
+   this._paint = paint;
+   return; 
+  });
+
+
+paintImageSchema.virtual('path')
+  
+  .get(function() {
+    //console.log(this.paint)
+    return path.join(this.paint.basedir, this.name); 
+  });
+
+paintImageSchema.set('toObject', {
+    getters: true
+});
+*/
 
 /*
  * resize

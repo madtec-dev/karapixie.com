@@ -33,7 +33,8 @@ paintSchema.virtual('status')
     return this._status;
   })
   .set(function(status) {
-    return this._status = status;
+    this._status = status;
+    return;
   });
 
   paintSchema.set('toObject', {
@@ -73,6 +74,14 @@ paintSchema.methods.createImageVariants = function(srcfile, cb) {
       }
     });
   };
+};
+
+paintSchema.methods.getImageVariantPaths = function() {
+  var paths = [];
+  for ( var i = 0; i < this.imageVariants.length; i++ ) {
+    console.log(path.join(this.basedir, this.imageVariants[i].name));
+  }
+  return paths;
 };
 
 var Paint = mongoose.model('Paint', paintSchema);

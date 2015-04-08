@@ -24,6 +24,7 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.set('paintbasedir', path.join(__dirname, 'public/images/paints/'));
+app.set('imageVariantProcesses', []);
 
 app.use('/', routes);
 app.use('/users', users);

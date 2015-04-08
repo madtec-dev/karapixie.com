@@ -112,7 +112,8 @@ router.post('/api/paints', function(req, res) {
         name: uuid.v4() + '.jpg',
         width: Math.round(size.width * Paint.sizes[i] / 100),
         height: Math.round(size.height * Paint.sizes[i] / 100)
-      });  
+      }); 
+      //paintImage.paint = paint;
       paintImages.push(paintImage);
     } 
 
@@ -121,7 +122,8 @@ router.post('/api/paints', function(req, res) {
   }).then(function(paint) {
     paint.saveAsync(); 
     return paint;
-  }).then(function(paint) { 
+  }).then(function(paint) {
+    req.app.get('imageVariantProcesses').push(paint);  
     paint.createImageVariants(originalImageDstPath, function(){});
     res
       .set({
@@ -140,29 +142,40 @@ router.post('/api/paints', function(req, res) {
  *********************************************/
 
 router.get('/api/paints/:paintId/status', function(req, res) {
-  Paint.findByIdAsync(req.params.paintId).then(function(paint) {
-    console.log(paint);
-    switch(paint.status) {
-      case 'created':
-        res
-          .set({
-            'location': '/api/paints/' + paint._id.toString() 
-          })
-          .status(201)
-          .json(paint);
-        break;
+  
+  var imageVariantProcesses = req.app.get('imageVariantProcesses');
 
-      case 'gone':
-        res.status(410);
-        break;
-
-      default:
-        res.status(200);
+  var paint;
+  for ( var i = 0; i < imageVariantProcesses.length; i++ ) {
+    if ( imageVariantProcesses[i]._id.toString() === req.params.paintId) {
+      paint = imageVariantProcesses[i];
+      break;
     }
-  }).catch(function(e) {
-    res.status(404).send(e);
-  });
+  }  
 
+  if (!paint) {
+    res.status(404);
+  }
+
+  switch(paint.status) {
+    case 'created':
+      imageVariantProcesses.splice(imageVariantProcesses.indexOf(paint), 1); 
+      res
+        .set({
+          'location': '/api/paints/' + paint._id.toString() 
+        })
+        .status(201)
+        .json(paint);
+      break;
+
+    case 'gone':
+      res.status(410);
+      break;
+
+    default:
+      res.status(200);
+  }
+  
 });
 
 /**********************************************
@@ -177,8 +190,15 @@ router.get('/api/paints/:paintId', function(req, res) {
 });
 
 router.patch('/api/paints/:paintId', function(req, res) {
-  Paint.findByIdAndUpdate(req.params.paintId, {name: req.body.name}, function(err, paint) {
+  Paint.findByIdAndUpdate(req.params.paintId, req.body, function(err, paint) {
     if ( err ) res.send(err);
+
+    console.log(paint.getImageVariantPaths());
+
+    if ( req.files ) {
+    
+    }
+
     res.json(paint); 
   });
 });
