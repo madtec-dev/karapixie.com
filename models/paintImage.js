@@ -6,6 +6,51 @@ var fs = require('fs');
 
 var Schema = mongoose.Schema;
 
+
+var PaintImage = function(options) {
+   
+  var _filepath = options.filepath || ''; 
+
+  var _schema = new mongoose.Schema({
+  
+    filename: {
+      type: String,
+      required: true
+    },
+
+    width: {
+      type: Number,
+      required: true
+    },
+
+    height: {
+      type: Number,
+      required: true
+    }
+  
+  });
+
+  var _model = mongoose.model('PaintImageModel', _schema);
+
+  this.getFilePath = function() {
+    return _filepath;
+  };
+
+  this.setFilePath = function(filepath) {
+    _filePath = filepath;
+  };
+
+  this.getFileName = function() {
+    return _model.filename; 
+  };
+
+  this.setFileName = function(filename) {
+    _model.filename = filename;
+  };
+
+};
+
+
 var paintImageSchema = new Schema({
 
   name: {
@@ -23,104 +68,13 @@ var paintImageSchema = new Schema({
     required: true
   }
 
-
 });
-/*
-paintImageSchema.virtual('paint')
-  .get(function() {
-    return this._paint;
-  })
-  .set(function(paint) {
-   this._paint = paint;
-   return; 
-  });
 
-
-paintImageSchema.virtual('path')
-  
-  .get(function() {
-    //console.log(this.paint)
-    return path.join(this.paint.basedir, this.name); 
-  });
-
-paintImageSchema.set('toObject', {
-    getters: true
-});
-*/
-
-/*
- * resize
- * write
- * createPaintIMagefromFile
- *
- *
- */
-
-/*
-paintImageSchema.statics.createPaintImageFromFile = function(filePath, cb) {
-
-  //fs.readFileAsync(filePath).then(function(val) {
-  //  console.log(val);
-  //})
-  gm(filePath)
-    .options({imageMagick: true})
-    .identify(function(err, fileData){
-      if (err) { 
-        cb(err)
-      }
-      else {
-        cb(null, new PaintImage({
-          width: fileData.size.width,
-          height: fileData.size.height,
-          name: path.basename(fileData.path)
-        }));
-      }
-  });
-  
-};
-*/
-
-/*
- * Given an image file path 
- * this creates a copy of the img
- * and resize it according with the per parameter
- * and write it on disk
- *
- * default toDir value is fromFile - dir
- */
-/*
-paintImageSchema.statics.createFileImageFromFile = function(fromFile, toDir, per, cb) {
-  var file = gm(fromFile);
-  file.options({imageMagick: true})
-    .size(function(err, size){
-      if (err) { 
-        cb(err)
-      }
-      else {
-        var width = Math.round(size.width * per / 100);
-        var height = Math.round(size.height * per / 100);
-        
-        if ( !fs.existsSync(toDir) ) {
-            fs.mkdirSync(toDir);
-        }
-        var toFile = path.join(toDir, uuid.v4());
-        toFile += '.jpg'
-      
-        file.resize(width, height)
-          .write(toFile, function(err) {
-            if ( err ) {
-              console.log(err);
-              cb(err);
-            }
-            else {
-              cb(null, toFile);
-            }
-          })
-      }
-  });
+paintImageSchema.methods.copy = function(dstpath) {
 
 };
-*/
+
+
 var PaintImage = mongoose.model('PaintImage', paintImageSchema);
 
 module.exports = PaintImage;

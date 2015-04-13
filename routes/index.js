@@ -94,7 +94,13 @@ router.get('/api/paints', function(req, res) {
 //var status;
 
 router.post('/api/paints', function(req, res) {
-  
+ 
+  var paint = new Paint({title: req.body.title});
+  paint.createCanonicalImage({srcfilepath: req.files.path});
+  paint.createImageVariants();
+  paint.save();
+  paint.createImageFileVariants();
+
   // this is the path for req.files.path
   var originalImageSrcPath = 'public/images/lisa.jpg';
   var originalImageDstPath = req.app.get('paintbasedir') + req.body.name + '/' + uuid.v4() + '.jpg';

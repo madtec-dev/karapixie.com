@@ -24,10 +24,6 @@ var paintSchema = new mongoose.Schema({
 
 });
 
-paintSchema.virtual('basedir').get(function() {
-  return path.join('public/images/paints', this.name);
-});
-
 paintSchema.virtual('status')
   .get(function() {
     return this._status;
@@ -37,9 +33,25 @@ paintSchema.virtual('status')
     return;
   });
 
-  paintSchema.set('toObject', {
-      getters: true
+paintSchema.virtual('filename') 
+ .get(function() {
+   return path.join(this.title); 
+ });
+
+paintSchema.virtual('filepath')
+  .get(function() {
+    // 'public/images/paints' should be read from a config 
+    // variable in the app object.
+    return path.join('public/images/paints', this.filename);
   });
+
+paintSchema.set('toObject', {
+    getters: true
+});
+
+paintSchema.methods.move = function(dstpath) {
+  fs.moveAsync(this.filepath, dstpath, true);
+};
 
 paintSchema.methods.createImageFile = function(srcfile, imageVariant, cb) {
   // get the extension of the file
