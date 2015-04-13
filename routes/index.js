@@ -96,10 +96,16 @@ router.get('/api/paints', function(req, res) {
 router.post('/api/paints', function(req, res) {
  
   var paint = new Paint({title: req.body.title});
-  paint.createCanonicalImage({srcfilepath: req.files.path});
-  paint.createImageVariants();
-  paint.save();
-  paint.createImageFileVariants();
+  paint.createCanonicalImage(req.files.path).then(function(paint) {
+    paint.createImageVariants();
+  }).then(function(paint) {
+    paint.save();
+    // send 202 status code
+  }).then(function(paint) {
+    paint.createImageFileVariants();
+  }).catch(function(e) {
+    res.status(500).send(e);
+  });
 
   // this is the path for req.files.path
   var originalImageSrcPath = 'public/images/lisa.jpg';

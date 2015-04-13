@@ -45,6 +45,17 @@ paintSchema.virtual('filepath')
     return path.join('public/images/paints', this.filename);
   });
 
+paintSchema.methods.createCanonicalImage = function(filepath) {
+  new PaintImage(filepath).then(function(paintImage){
+    paintImage.move(path.join(this.filepath, uuid.v4() + '.jpg'))
+  }).then(function(paintImage) {
+    this.images.addToSet(paintImage);  
+    //return paint
+  }).catch(function(e) {
+    return e;
+  });
+};
+
 paintSchema.set('toObject', {
     getters: true
 });
@@ -53,39 +64,39 @@ paintSchema.methods.move = function(dstpath) {
   fs.moveAsync(this.filepath, dstpath, true);
 };
 
-paintSchema.methods.createImageFile = function(srcfile, imageVariant, cb) {
-  // get the extension of the file
-  var dstpath = path.join(this.basedir, imageVariant.name);
-  gm(srcfile)  
-    .options({imageMagick: true})
-    .resize(imageVariant.width, imageVariant.height)
-    .write(dstpath, function(err) {
-      if ( err ) return cb(err);
-      cb(null, dstpath);
+paintSchema.methods.createImageFileVariants = function() {
+  var resizedCount = 0;
+  _.map(this.images, function(image) {
+    image.resize(image.getWidth, image.getHeight).then(function(paintImage) {
+      resizedCount += 1;
+      if( resizedCount === this.images.length ) {
+        return;
+      }
+    }).catch(function(e) {
+      return e;
     });
+  });
 };
 
 
-paintSchema.methods.createImageVariants = function(srcfile, cb) {
-  this.status = 'processing'; 
-  var filepaths = [];
-  var self = this;
-  for ( var i = 0; i < this.imageVariants.length; i++ ) {
+paintSchema.methods.createImageVariants = function() {
+  var paintImage;
+  for ( var i = 0; i < this.sizes.length; i++ ) {
+    paintImage = this.getCanonicalImage()
+      .copy(path.join(this.filepath, uuid.v4() + '.jpg'))
+      .then(function(paintImage) {
+        paintImage.setWidth(
+          Math.round(paintImage.getWidth * this.sizes[i] / 100)
+        );
+        paintImage.setHeight(
+          Math.round(paintImage.getHeight * this.sizes[i] / 100)
+        );
+        this.images.addToSet(paintImage);
 
-    this.createImageFile(srcfile, this.imageVariants[i], function(err, path) {
-      if ( err ) {
-        self.status = 'gone'; 
-        return cb(err);
-      }
-      
-      filepaths.push(path);
-      if ( filepaths.length === self.imageVariants.length ) {
-        self.status = 'created'; 
-        console.log(self.status);
-        cb(null, filepaths);
-      }
-    });
-  };
+      }).catch(function(e) {
+        return e;
+      });
+  }
 };
 
 paintSchema.methods.getImageVariantPaths = function() {

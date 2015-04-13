@@ -7,9 +7,9 @@ var fs = require('fs');
 var Schema = mongoose.Schema;
 
 
-var PaintImage = function(options) {
-   
-  var _filepath = options.filepath || ''; 
+var PaintImage = function(filepath, cb) {
+  
+  var _filepath = filepath; 
 
   var _schema = new mongoose.Schema({
   
@@ -32,12 +32,63 @@ var PaintImage = function(options) {
 
   var _model = mongoose.model('PaintImageModel', _schema);
 
+  this._setSize(cb);
+
+  this._setSize = function(cb) {
+    var self = this;
+    gm(_filepath)
+    .options{imageMagick: true}
+    .size(function(err, size) {
+      if( err ) return cb(err);
+      _model.width = size.width;
+      _model.height = size.height;
+      cb(null, self);
+    });
+  };
+
+  this.getWidth = function() {
+    return _model.width;
+  };
+
+  this.getHeight = function() {
+    return _model.height;
+  };
+
+  this.getSize = function() {
+    return {
+      width: _model.width,
+      height: _model.height
+    }
+  };
+
+  this.resize = function(width, height, cb) {
+    var self = this;
+    gm(_filepath)
+    .options({imageMagick: true})
+    .resize(width, height)
+    .write(_filepath, function(err) {
+      if( err ) return cb(err);
+      cb(null, self);
+    })
+  };
+
+  this.move = function(dstpath, cb) {
+    var self = this;
+    fs.move(_filepath, dstpath, function(err) {
+      if( err ) return cb(err);
+      _filepath = dstpath;
+      cb(null, self);
+    });
+  };
+
   this.getFilePath = function() {
     return _filepath;
   };
 
+
   this.setFilePath = function(filepath) {
     _filePath = filepath;
+    
   };
 
   this.getFileName = function() {
@@ -49,32 +100,5 @@ var PaintImage = function(options) {
   };
 
 };
-
-
-var paintImageSchema = new Schema({
-
-  name: {
-    type: String,
-    required: true
-  },
-
-  width: {
-    type: Number,
-    required: true
-  },
-
-  height: {
-    type: Number,
-    required: true
-  }
-
-});
-
-paintImageSchema.methods.copy = function(dstpath) {
-
-};
-
-
-var PaintImage = mongoose.model('PaintImage', paintImageSchema);
 
 module.exports = PaintImage;
