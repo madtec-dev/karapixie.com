@@ -70,8 +70,8 @@ var uuid = require('node-uuid');
 var Promise = require('bluebird');
 
 
-Promise.promisifyAll(Paint);
-Promise.promisifyAll(Paint.prototype);
+//Promise.promisifyAll(Paint);
+//Promise.promisifyAll(Paint.prototype);
 Promise.promisifyAll(fs);
 
 
@@ -93,24 +93,25 @@ router.get('/api/paints', function(req, res) {
 
 
 router.post('/api/paints', function(req, res) {
-  new PaintImage('public/images/fun.jpg').then(function(val) {
+  /*new PaintImage('public/images/fun.jpg').then(function(val) {
     console.log('res:', val);
   }).catch(function(e) {
     console.log('error:', e);
-  });
+  });*/
   
     
-  /*var paint = new Paint({title: req.body.title});
-  paint.createCanonicalImage(req.files.path).then(function(paint) {
-    paint.createImageVariants();
-  }).then(function(paint) {
+  var paint = new Paint({title: 'lisa'});
+  paint.createCanonicalImage('public/images/lisa.jpg').then(function(paint) {
+    console.log(paint.images[0].getFilePath());
+    //paint.createImageVariants();
+  /*}).then(function(paint) {
     paint.save();
     // send 202 status code
   }).then(function(paint) {
-    paint.createImageFileVariants();
+    paint.createImageFileVariants();*/
   }).catch(function(e) {
     res.status(500).send(e);
-  });*/
+  });
 });
 
 /**********************************************

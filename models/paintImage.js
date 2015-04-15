@@ -2,7 +2,7 @@ var mongoose = require('mongoose');
 var gm = require('gm');
 var Category = require('./category');
 var path = require('path');
-var fs = require('fs');
+var fs = require('fs-extra');
 
 var Schema = mongoose.Schema;
 
@@ -58,12 +58,15 @@ var PaintImage = function(filepath) {
     })
   };
 
-  this.move = function(dstpath, cb) {
+  this.move = function(dstpath) {
     var self = this;
-    fs.move(_filepath, dstpath, function(err) {
-      if( err ) return cb(err);
-      _filepath = dstpath;
-      cb(null, self);
+    return new Promise(function(resolve, reject) {
+      // THIS IS MOVE IN PRODUCTION
+      fs.copy(_filepath, dstpath, function(err) {
+        if( err ) reject('ERROR:', err);
+        _filepath = dstpath;
+        resolve(self);
+      });
     });
   };
 
@@ -87,6 +90,7 @@ var PaintImage = function(filepath) {
   
   //this.setFileName(path.basename(_filepath));
   var self = this;
+   
   return new Promise(function(resolve, reject) {
     gm(_filepath)
     .options({imageMagick: true})

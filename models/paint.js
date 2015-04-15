@@ -10,7 +10,7 @@ var app = require('../app');
 
 var paintSchema = new mongoose.Schema({
  
-  name: {
+  title: {
     type: String,
     required: true
   },
@@ -20,7 +20,7 @@ var paintSchema = new mongoose.Schema({
     ref: 'Category'
   },
   */
-  imageVariants: [PaintImage.schema]
+  images: [PaintImage._schema]
 
 });
 
@@ -46,13 +46,19 @@ paintSchema.virtual('filepath')
   });
 
 paintSchema.methods.createCanonicalImage = function(filepath) {
-  new PaintImage(filepath).then(function(paintImage){
-    paintImage.move(path.join(this.filepath, uuid.v4() + '.jpg'))
-  }).then(function(paintImage) {
-    this.images.addToSet(paintImage);  
-    //return paint
+  // maybe this method should return 
+  // only the (canonical) paintImage 
+  // instead of the paint Object
+  var self = this;
+  return new Promise(function(resolve, reject) {
+    new PaintImage(filepath).then(function(paintImage){
+      return paintImage.move(path.join(self.filepath, uuid.v4() + '.jpg'))
+    }).then(function(paintImage) {
+      self.images.addToSet(paintImage);
+      resolve(self);
   }).catch(function(e) {
-    return e;
+    reject(e);
+  });
   });
 };
 
