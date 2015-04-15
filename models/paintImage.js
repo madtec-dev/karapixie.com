@@ -7,8 +7,8 @@ var fs = require('fs');
 var Schema = mongoose.Schema;
 
 
-var PaintImage = function(filepath, cb) {
-  
+var PaintImage = function(filepath) {
+
   var _filepath = filepath; 
 
   var _schema = new mongoose.Schema({
@@ -31,20 +31,6 @@ var PaintImage = function(filepath, cb) {
   });
 
   var _model = mongoose.model('PaintImageModel', _schema);
-
-  this._setSize(cb);
-
-  this._setSize = function(cb) {
-    var self = this;
-    gm(_filepath)
-    .options{imageMagick: true}
-    .size(function(err, size) {
-      if( err ) return cb(err);
-      _model.width = size.width;
-      _model.height = size.height;
-      cb(null, self);
-    });
-  };
 
   this.getWidth = function() {
     return _model.width;
@@ -90,7 +76,7 @@ var PaintImage = function(filepath, cb) {
     _filePath = filepath;
     
   };
-
+  
   this.getFileName = function() {
     return _model.filename; 
   };
@@ -98,6 +84,21 @@ var PaintImage = function(filepath, cb) {
   this.setFileName = function(filename) {
     _model.filename = filename;
   };
+  
+  //this.setFileName(path.basename(_filepath));
+  var self = this;
+  return new Promise(function(resolve, reject) {
+    gm(_filepath)
+    .options({imageMagick: true})
+    .size(function(err, size) {
+      if( err ) reject(err);
+      _model.width = size.width;
+      _model.height = size.height;
+      resolve(self);
+    });
+  });
+
+
 
 };
 

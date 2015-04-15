@@ -91,11 +91,16 @@ router.get('/api/paints', function(req, res) {
   });
 });
 
-//var status;
 
 router.post('/api/paints', function(req, res) {
- 
-  var paint = new Paint({title: req.body.title});
+  new PaintImage('public/images/fun.jpg').then(function(val) {
+    console.log('res:', val);
+  }).catch(function(e) {
+    console.log('error:', e);
+  });
+  
+    
+  /*var paint = new Paint({title: req.body.title});
   paint.createCanonicalImage(req.files.path).then(function(paint) {
     paint.createImageVariants();
   }).then(function(paint) {
@@ -105,48 +110,7 @@ router.post('/api/paints', function(req, res) {
     paint.createImageFileVariants();
   }).catch(function(e) {
     res.status(500).send(e);
-  });
-
-  // this is the path for req.files.path
-  var originalImageSrcPath = 'public/images/lisa.jpg';
-  var originalImageDstPath = req.app.get('paintbasedir') + req.body.name + '/' + uuid.v4() + '.jpg';
-  
-  // move the uploaded image from uploads to dst dir
-  fs.copyAsync(originalImageSrcPath, originalImageDstPath).then(function() {
-    return Promise.promisifyAll(gm(originalImageDstPath))
-      .options({imageMagick: true})
-      .sizeAsync();
-  }).then(function(size) {
-    var paint = new Paint({name: req.body.name});
-    var paintImages = [];
-    for ( var i = 0; i < Paint.sizes.length; i++ ) {
-      var paintImage = new PaintImage({
-        name: uuid.v4() + '.jpg',
-        width: Math.round(size.width * Paint.sizes[i] / 100),
-        height: Math.round(size.height * Paint.sizes[i] / 100)
-      }); 
-      //paintImage.paint = paint;
-      paintImages.push(paintImage);
-    } 
-
-    paint.imageVariants = paintImages;
-    return paint;
-  }).then(function(paint) {
-    paint.saveAsync(); 
-    return paint;
-  }).then(function(paint) {
-    req.app.get('imageVariantProcesses').push(paint);  
-    paint.createImageVariants(originalImageDstPath, function(){});
-    res
-      .set({
-        'location': '/api/paints/' + paint._id.toString() + '/status'
-      })
-      .status(202)
-      .json(paint);
-  }).catch(function(e) {
-    console.error(e);
-       res.status(400).send(e);
-  });
+  });*/
 });
 
 /**********************************************
