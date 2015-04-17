@@ -5,6 +5,7 @@ var PaintImage = require('./paintImage');
 var path = require('path');
 var fs = require('fs-extra');
 var uuid = require('node-uuid');
+var _ = require('lodash');
 var PaintImage = require('./paintImage');
 var app = require('../app');
 
@@ -20,7 +21,7 @@ var paintSchema = new mongoose.Schema({
     ref: 'Category'
   },
   */
-  images: [PaintImage._schema]
+  images: []
 
 });
 
@@ -51,14 +52,15 @@ paintSchema.methods.createCanonicalImage = function(filepath) {
   // instead of the paint Object
   var self = this;
   return new Promise(function(resolve, reject) {
-    new PaintImage(filepath).then(function(paintImage){
-      return paintImage.move(path.join(self.filepath, uuid.v4() + '.jpg'))
-    }).then(function(paintImage) {
+    var paintImage = new PaintImage(filepath);
+    paintImage.setSizes().then(function(paintImage) {
+      paintImage.setFileName(uuid.v4() + '.jpg');
+      paintImage.move(path.join(self.filepath, paintImage.getFileName()));
       self.images.addToSet(paintImage);
       resolve(self);
-  }).catch(function(e) {
-    reject(e);
-  });
+    }).catch(function(e) {
+      reject(e);
+    });
   });
 };
 
@@ -72,11 +74,15 @@ paintSchema.methods.move = function(dstpath) {
 
 paintSchema.methods.createImageFileVariants = function() {
   var resizedCount = 0;
+  var self = this;
+  console.log('resizing...');
   _.map(this.images, function(image) {
-    image.resize(image.getWidth, image.getHeight).then(function(paintImage) {
+    image.resize(image.getWidth(), image.getHeight()).then(function(paintImage) {
       resizedCount += 1;
-      if( resizedCount === this.images.length ) {
-        return;
+      console.log(self);
+      if( resizedCount === self.images.length ) {
+        console.log('DONE');
+        return this;
       }
     }).catch(function(e) {
       return e;
@@ -86,23 +92,26 @@ paintSchema.methods.createImageFileVariants = function() {
 
 
 paintSchema.methods.createImageVariants = function() {
-  var paintImage;
-  for ( var i = 0; i < this.sizes.length; i++ ) {
-    paintImage = this.getCanonicalImage()
-      .copy(path.join(this.filepath, uuid.v4() + '.jpg'))
-      .then(function(paintImage) {
-        paintImage.setWidth(
-          Math.round(paintImage.getWidth * this.sizes[i] / 100)
-        );
-        paintImage.setHeight(
-          Math.round(paintImage.getHeight * this.sizes[i] / 100)
-        );
-        this.images.addToSet(paintImage);
-
-      }).catch(function(e) {
-        return e;
-      });
+  var self = this;
+  var i;
+  for ( i = 0; i < Paint.sizes.length; i++ ) {
+    var canonicalImage = this.getCanonicalImage();
+    var paintImage = new PaintImage(canonicalImage.getFilePath());
+     paintImage.setFileName(uuid.v4() + '.jpg');
+     paintImage.setWidth(
+       Math.round(canonicalImage.getWidth() * Paint.sizes[i] / 100)
+     );
+     paintImage.setHeight(
+       Math.round(canonicalImage.getHeight() * Paint.sizes[i] / 100)
+     );
+     console.log(paintImage.getSize());
+     self.images.push(paintImage);
+     if(self.images.length === Paint.sizes.length + 1) return self;
   }
+};
+
+paintSchema.methods.getCanonicalImage = function() {
+  return this.images[0];
 };
 
 paintSchema.methods.getImageVariantPaths = function() {

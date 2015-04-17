@@ -93,21 +93,18 @@ router.get('/api/paints', function(req, res) {
 
 
 router.post('/api/paints', function(req, res) {
-  /*new PaintImage('public/images/fun.jpg').then(function(val) {
-    console.log('res:', val);
-  }).catch(function(e) {
-    console.log('error:', e);
-  });*/
-  
-    
   var paint = new Paint({title: 'lisa'});
   paint.createCanonicalImage('public/images/lisa.jpg').then(function(paint) {
+    paint.createImageVariants();
     console.log(paint.images[0].getFilePath());
-    //paint.createImageVariants();
-  /*}).then(function(paint) {
-    paint.save();
-    // send 202 status code
+    console.log(paint.images[1].getFilePath());
+    console.log(paint.images[2].getFilePath());
+    return paint.createImageFileVariants();
   }).then(function(paint) {
+    console.log(paint);
+    //paint.save();
+    // send 202 status code
+  /*}).then(function(paint) {
     paint.createImageFileVariants();*/
   }).catch(function(e) {
     res.status(500).send(e);
