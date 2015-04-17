@@ -75,17 +75,18 @@ paintSchema.methods.move = function(dstpath) {
 paintSchema.methods.createImageFileVariants = function() {
   var resizedCount = 0;
   var self = this;
-  console.log('resizing...');
-  _.map(this.images, function(image) {
-    image.resize(image.getWidth(), image.getHeight()).then(function(paintImage) {
-      resizedCount += 1;
-      console.log(self);
-      if( resizedCount === self.images.length ) {
-        console.log('DONE');
-        return this;
-      }
-    }).catch(function(e) {
-      return e;
+  return new Promise(function(resolve, reject) {
+    _.map(self.images, function(image) {
+      console.log('resizing...');
+      image.resize(image.getWidth(), image.getHeight()).then(function(paintImage) {
+        resizedCount += 1;
+        if( resizedCount === self.images.length ) {
+          console.log('DONE');
+          resolve(self);
+        }
+      }).catch(function(e) {
+        reject(e);
+      });
     });
   });
 };

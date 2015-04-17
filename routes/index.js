@@ -96,13 +96,16 @@ router.post('/api/paints', function(req, res) {
   var paint = new Paint({title: 'lisa'});
   paint.createCanonicalImage('public/images/lisa.jpg').then(function(paint) {
     paint.createImageVariants();
-    console.log(paint.images[0].getFilePath());
-    console.log(paint.images[1].getFilePath());
-    console.log(paint.images[2].getFilePath());
     return paint.createImageFileVariants();
   }).then(function(paint) {
-    console.log(paint);
-    //paint.save();
+    // IT seems to save the iamges array in the DB
+    // but then it shows an array of null Objects
+    paint.save(function(err, paint){
+      if(err) console.log(err);
+      console.log(paint.images[0].getFilePath());
+      console.log(paint.images[1].getFilePath());
+      console.log(paint.images[2].getFilePath());
+    });
     // send 202 status code
   /*}).then(function(paint) {
     paint.createImageFileVariants();*/

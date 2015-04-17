@@ -60,11 +60,13 @@ var PaintImage = function(filepath) {
   this.resize = function(width, height, cb) {
     var self = this;
     return new Promise(function(resolve, reject) {
+      var newPath = path.join(path.dirname(_filepath), self.getFileName());
       gm(_filepath)
       .options({imageMagick: true})
       .resize(width, height)
-      .write(path.join(path.dirname(_filepath), self.getFileName()), function(err) {
+      .write(newPath, function(err) {
         if( err ) reject(err);
+        _filepath = newPath;
         resolve(self);
       })
     })
