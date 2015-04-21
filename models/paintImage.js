@@ -2,13 +2,11 @@ var mongoose = require('mongoose');
 var gm = require('gm');
 var Category = require('./category');
 var path = require('path');
-var fs = require('fs-extra');
+var imageFile = require('./imageFile'); 
 
-var Schema = mongoose.Schema;
-
-var schema = new mongoose.Schema({
+var paintImageSchema = new mongoose.Schema({
   
-    filename: {
+    filepath: {
       type: String,
       required: true
     },
@@ -23,104 +21,22 @@ var schema = new mongoose.Schema({
       required: true
     }
   
+});
+
+paintImageSchema.virtuals('_file').get(function() {
+  return this._file ? this._file : new imageFile(this.filepath);
+});
+
+
+paintImageSchema.methods.resize = function(width, height, cb) {
+
+  this._file.resize(width, height, function(err) {
+    if ( err ) cb(err);
+    this.width = width;
+    this.height = height;
+    cb(null, this);
   });
-
-// TODO this create a new model when a PaintImage is created
-// if not the same model is overwirtten when a new PaintImage is created 
-var Model = mongoose.model('PaintImageModel', schema);
-var PaintImage = function(filepath) {
-
-  var _model = new Model();
-  var _filepath = filepath; 
-
- 
-  this.getWidth = function() {
-    return _model.width;
-  };
-
-  this.setWidth = function(width) {
-    _model.width = width;
-  };
-
-  this.setHeight = function(height) {
-   _model.height = height;
-  };
-
-  this.getHeight = function() {
-    return _model.height;
-  };
-
-  this.getSize = function() {
-    return {
-      width: _model.width,
-      height: _model.height
-    }
-  };
-
-  this.resize = function(width, height, cb) {
-    var self = this;
-    return new Promise(function(resolve, reject) {
-      var newPath = path.join(path.dirname(_filepath), self.getFileName());
-      gm(_filepath)
-      .options({imageMagick: true})
-      .resize(width, height)
-      .write(newPath, function(err) {
-        if( err ) reject(err);
-        _filepath = newPath;
-        resolve(self);
-      })
-    })
-  };
-
-  this.copy = function(dstpath) {
-    var self = this;
-    return new Promise(function(resolve, reject) {
-      fs.copySync(_filepath, dstpath);
-      _filepath = dstpath;
-      resolve(self);
-    });
-  };
   
-  this.move = function(dstpath) {
-    var self = this;
-      // THIS IS MOVE IN PRODUCTION
-      fs.copySync(_filepath, dstpath);
-      _filepath = dstpath;
-      return(self);
-  };
-
-  this.getFilePath = function() {
-    return _filepath;
-  };
-
-
-  this.setFilePath = function(filepath) {
-    _filePath = filepath;
-    
-  };
-  
-  this.getFileName = function() {
-    return _model.filename; 
-  };
-
-  this.setFileName = function(filename) {
-    _model.filename = filename;
-  };
-  
-  //this.setFileName(path.basename(_filepath));
-  this.setSizes = function() {
-    var self = this;
-    return new Promise(function(resolve, reject) {
-      gm(_filepath)
-      .options({imageMagick: true})
-      .size(function(err, size) {
-        if( err ) reject(err);
-        _model.width = size.width;
-        _model.height = size.height;
-        resolve(self);
-      });
-    })
-  };
 };
 
-module.exports = PaintImage;
+module.exports = mongoose.model('PaintImage', paintImageSchema);

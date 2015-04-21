@@ -9,6 +9,26 @@ var _ = require('lodash');
 var PaintImage = require('./paintImage');
 var app = require('../app');
 
+var schema = new mongoose.Schema({
+  
+    filename: {
+      type: String,
+      required: true
+    },
+
+    width: {
+      type: Number,
+      required: true
+    },
+
+    height: {
+      type: Number,
+      required: true
+    }
+  
+  });
+
+
 var paintSchema = new mongoose.Schema({
  
   title: {
@@ -21,6 +41,7 @@ var paintSchema = new mongoose.Schema({
     ref: 'Category'
   },
   */
+  // TODO should we save the whole paintImage Object?
   images: []
 
 });
@@ -46,12 +67,11 @@ paintSchema.virtual('filepath')
     return path.join('public/images/paints', this.filename);
   });
 
-paintSchema.methods.createCanonicalImage = function(filepath) {
+paintSchema.methods.createCanonicalImage = function(filepath, cb) {
   // maybe this method should return 
   // only the (canonical) paintImage 
   // instead of the paint Object
   var self = this;
-  return new Promise(function(resolve, reject) {
     var paintImage = new PaintImage(filepath);
     paintImage.setSizes().then(function(paintImage) {
       paintImage.setFileName(uuid.v4() + '.jpg');
@@ -78,7 +98,11 @@ paintSchema.methods.createImageFileVariants = function() {
   return new Promise(function(resolve, reject) {
     _.map(self.images, function(image) {
       console.log('resizing...');
-      image.resize(image.getWidth(), image.getHeight()).then(function(paintImage) {
+      console.log(image);
+      // This method should be static because
+      //  doesn't modify the paintImage instance
+      var imagepath = path.join(self.filepath, image.filename)
+      PaintImage.resize(imagepath, image.width, image.height).then(function(paintImage) {
         resizedCount += 1;
         if( resizedCount === self.images.length ) {
           console.log('DONE');
@@ -97,16 +121,15 @@ paintSchema.methods.createImageVariants = function() {
   var i;
   for ( i = 0; i < Paint.sizes.length; i++ ) {
     var canonicalImage = this.getCanonicalImage();
-    var paintImage = new PaintImage(canonicalImage.getFilePath());
+    var paintImage = new PaintImage(path.join(this.filepath, canonicalImage.filename));
      paintImage.setFileName(uuid.v4() + '.jpg');
      paintImage.setWidth(
-       Math.round(canonicalImage.getWidth() * Paint.sizes[i] / 100)
+       Math.round(canonicalImage.width * Paint.sizes[i] / 100)
      );
      paintImage.setHeight(
-       Math.round(canonicalImage.getHeight() * Paint.sizes[i] / 100)
+       Math.round(canonicalImage.height * Paint.sizes[i] / 100)
      );
-     console.log(paintImage.getSize());
-     self.images.push(paintImage);
+     self.images.addToSet(paintImage.model);
      if(self.images.length === Paint.sizes.length + 1) return self;
   }
 };
